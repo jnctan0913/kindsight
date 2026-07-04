@@ -24,8 +24,7 @@ export default function Home() {
         alt='Kindsight'
         style={{width: '60%', maxWidth: 280, height: 'auto'}}
       />
-      <h1 style={{color: 'var(--main-color)'}}>Kindsight</h1>
-      <p className='t16' style={{color: 'var(--text-color)'}}>
+      <p className='t16' style={{color: 'var(--text-color)', marginTop: -8}}>
         The light behind you
       </p>
       <Link
