@@ -466,6 +466,50 @@
   padding-bottom: 150px;
 }
 
+/* ---- Export long-press fallback overlay ---- */
+
+.exportOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+  padding: 24px 16px calc(24px + env(safe-area-inset-bottom));
+  background-color: rgba(30, 37, 56, 0.97);
+
+  p {
+    color: var(--neon-white);
+    font-size: 18px;
+    font-weight: var(--fw-semibold);
+    text-align: center;
+    margin: 8px 0 16px;
+  }
+
+  img {
+    max-width: 100%;
+    border-radius: var(--radius-card);
+    box-shadow: 0 0 32px rgba(255, 243, 214, 0.45);
+    -webkit-touch-callout: default;
+  }
+}
+
+.exportOverlayClose {
+  margin-top: 20px;
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: var(--radius-control);
+  color: var(--aurora-cream);
+  background-color: transparent;
+  box-shadow: inset 0 0 0 1px rgba(255, 243, 214, 0.4);
+
+  &:focus-visible {
+    outline: 3px solid var(--neon-white);
+    outline-offset: 2px;
+  }
+}
+
 .srOnly {
   position: absolute;
   width: 1px;

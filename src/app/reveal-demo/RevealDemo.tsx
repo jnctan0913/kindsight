@@ -1,6 +1,6 @@
 'use client';
 
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useSearchParams} from 'next/navigation';
 
 import styles from './reveal.module.scss';
@@ -9,6 +9,26 @@ import {demoNotes} from './demoNotes';
 import {NoteCard} from './NoteCard';
 import {HoldToRevealButton} from './HoldToRevealButton';
 import {asset} from '../../config';
+import {
+  renderWallImage,
+  saveWallImage,
+  type ExportFonts,
+} from '../../lib/export';
+
+function resolveFonts(): ExportFonts {
+  const cs = getComputedStyle(document.body);
+  const pick = (v: string, fallback: string) => {
+    const raw = cs.getPropertyValue(v).trim();
+    // Grab the first family in the stack, unquoted.
+    const first = raw.split(',')[0]?.trim().replace(/^['"]|['"]$/g, '');
+    return first || fallback;
+  };
+  return {
+    dosis: pick('--font-dosis', 'Dosis'),
+    leagueSpartan: pick('--font-league-spartan', 'League Spartan'),
+    notoSC: pick('--font-noto-sc', 'Noto Sans SC'),
+  };
+}
 
 type Stage = 'locked' | 'unlock' | 'wall';
 
@@ -30,6 +50,13 @@ export const RevealDemo: React.FC = () => {
   const [soundOn, setSoundOn] = useState(true);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [toast, setToast] = useState('');
+
+  const exportBlobRef = useRef<Blob | null>(null);
+  const [exportReady, setExportReady] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [overlayUrl, setOverlayUrl] = useState<string | null>(null);
+  const overlayCloseRef = useRef<HTMLButtonElement | null>(null);
+  const exportBtnRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -55,11 +82,84 @@ export const RevealDemo: React.FC = () => {
     return () => window.clearTimeout(timer);
   }, [toast]);
 
+  // Pre-render the PNG blob before the wall's export tap. Rendering ahead of the
+  // gesture is the iOS Safari fix: navigator.share must be called synchronously
+  // inside the tap, so no async work can happen after the user taps.
+  useEffect(() => {
+    if (stage !== 'wall' || exportReady) return;
+    let cancelled = false;
+    const run = () => {
+      renderWallImage(demoNotes, {
+        fonts: resolveFonts(),
+        strings: {
+          wordmark: t('export.wordmark'),
+          title: t('export.title'),
+          date: t('export.date'),
+          footerEN: t('export.footer.en'),
+          footerZH: t('export.footer.zh'),
+          frameLabel: {
+            moment: t('frame.moment.label'),
+            strength: t('frame.strength.label'),
+            wish: t('frame.wish.label'),
+          },
+        },
+        mascotSrc: asset('/assets/kindsight/kindsight-mascot-only.png'),
+      })
+        .then((blob) => {
+          if (cancelled) return;
+          exportBlobRef.current = blob;
+          setExportReady(true);
+        })
+        .catch(() => {
+          if (!cancelled) setExportReady(false);
+        });
+    };
+    const ric = (
+      window as unknown as {
+        requestIdleCallback?: (cb: () => void) => number;
+      }
+    ).requestIdleCallback;
+    const handle = ric ? ric(run) : window.setTimeout(run, 0);
+    return () => {
+      cancelled = true;
+      const cic = (
+        window as unknown as {cancelIdleCallback?: (h: number) => void}
+      ).cancelIdleCallback;
+      if (cic) cic(handle);
+      else window.clearTimeout(handle);
+    };
+  }, [stage, exportReady]);
+
+  // Focus the overlay's close control when the long-press fallback opens.
+  useEffect(() => {
+    if (overlayUrl) overlayCloseRef.current?.focus();
+  }, [overlayUrl]);
+
+  const onExportTap = useCallback(() => {
+    const blob = exportBlobRef.current;
+    if (!blob) return;
+    setExporting(true);
+    saveWallImage(blob, {
+      fileName: 'kindsight-wall.png',
+      onLongPress: (url) => setOverlayUrl(url),
+    })
+      .then((result) => {
+        if (result !== 'longpress') setToast(t('export.success'));
+      })
+      .finally(() => setExporting(false));
+  }, []);
+
+  const closeOverlay = useCallback(() => {
+    setOverlayUrl(null);
+    exportBtnRef.current?.focus();
+  }, []);
+
   const restart = () => {
     setStage('locked');
     setSilCount(SILHOUETTE_START);
     setShared(demoNotes.map(() => false));
     setToast('');
+    setOverlayUrl(null);
   };
 
   const renderLocked = () => (
@@ -195,19 +295,44 @@ export const RevealDemo: React.FC = () => {
 
       <div className={styles.pinnedBar}>
         <button
+          ref={exportBtnRef}
           className={styles.primaryButton}
           style={{marginTop: 0}}
-          onClick={() =>
-            setToast('Saving your wall as an image ships in milestone M1.')
-          }
+          disabled={!exportReady || exporting}
+          onClick={onExportTap}
         >
-          {t('wall.export.cta')}
+          {exporting || !exportReady
+            ? t('export.rendering')
+            : t('wall.export.cta')}
         </button>
       </div>
 
       {toast && (
         <div className={styles.toast} role='status'>
           {toast}
+        </div>
+      )}
+
+      {overlayUrl && (
+        <div
+          className={styles.exportOverlay}
+          role='dialog'
+          aria-modal='true'
+          aria-label={t('export.overlay.aria')}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') closeOverlay();
+          }}
+        >
+          <p>{t('export.fallback')}</p>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={overlayUrl} alt={t('export.overlay.aria')} />
+          <button
+            ref={overlayCloseRef}
+            className={styles.exportOverlayClose}
+            onClick={closeOverlay}
+          >
+            {t('export.fallback.close')}
+          </button>
         </div>
       )}
     </div>
