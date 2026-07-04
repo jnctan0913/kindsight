@@ -9,9 +9,15 @@ type Props = {
   title?: string;
   showLogo?: boolean;
   showGoBack?: boolean;
+  rightSlot?: React.ReactNode;
 };
 
-export const Header: React.FC<Props> = ({showGoBack, showLogo, title}) => {
+export const Header: React.FC<Props> = ({
+  showGoBack,
+  showLogo,
+  title,
+  rightSlot,
+}) => {
   const router = useRouter();
 
   const renderGoBack = () => {
@@ -37,6 +43,23 @@ export const Header: React.FC<Props> = ({showGoBack, showLogo, title}) => {
         }}
       >
         <h4>{title}</h4>
+      </div>
+    );
+  };
+
+  const renderRightSlot = () => {
+    if (!rightSlot) return null;
+    return (
+      <div
+        style={{
+          position: 'absolute',
+          right: 0,
+          top: '50%',
+          transform: 'translateY(-50%)',
+          padding: '0 20px',
+        }}
+      >
+        {rightSlot}
       </div>
     );
   };
@@ -70,6 +93,7 @@ export const Header: React.FC<Props> = ({showGoBack, showLogo, title}) => {
       {renderGoBack()}
       {renderTitle()}
       {renderLogo()}
+      {renderRightSlot()}
     </header>
   );
 };

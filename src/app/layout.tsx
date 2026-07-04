@@ -3,6 +3,8 @@ import type {Metadata} from 'next';
 
 import '../scss/_index.scss';
 
+import {LocaleProvider} from '../i18n';
+
 const dosis = Dosis({
   variable: '--font-dosis',
   subsets: ['latin'],
@@ -49,7 +51,7 @@ export default function RootLayout({
         className={`${dosis.variable} ${leagueSpartan.variable} ${notoSansSC.variable}`}
         style={{backgroundColor: 'var(--neon-white)'}}
       >
-        {children}
+        <LocaleProvider>{children}</LocaleProvider>
       </body>
     </html>
   );

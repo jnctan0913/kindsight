@@ -146,7 +146,7 @@ export const RevealDemo: React.FC = () => {
         />
         <h2>{t('wall.header')}</h2>
       </div>
-      <p className={styles.wallHint}>{t('wall.optin.hint')}</p>
+      <p className={styles.wallHint}>{t('wall.share.hint')}</p>
 
       <div className={styles.wallGrid}>
         {demoNotes.map((note, i) => (
@@ -157,33 +157,38 @@ export const RevealDemo: React.FC = () => {
               reducedMotion ? undefined : {animationDelay: `${i * 140}ms`}
             }
           >
-            <NoteCard note={note} variant='wall' />
-            <div className={styles.wallOptinRow}>
-              <span className={styles.wallOptinLabel}>
-                {t('reveal.optin.question')}
-              </span>
-              <div className={styles.optinButtons} role='group'>
+            <NoteCard
+              note={note}
+              variant='wall'
+              className={shared[i] ? styles.wallCardShared : undefined}
+              cornerAction={
                 <button
-                  className={`${styles.optinPill} ${styles.optinPillSmall} ${!shared[i] ? styles.optinPillActive : ''}`}
+                  className={`${styles.shareButton} ${shared[i] ? styles.shareButtonActive : ''}`}
+                  aria-label={t('wall.share.aria')}
+                  aria-pressed={shared[i]}
                   onClick={() =>
-                    setShared((s) => s.map((v, j) => (j === i ? false : v)))
+                    setShared((s) => s.map((v, j) => (j === i ? !v : v)))
                   }
                 >
-                  {t('reveal.optin.no')}
+                  <svg
+                    width='20'
+                    height='20'
+                    viewBox='0 0 24 24'
+                    fill='none'
+                    stroke='currentColor'
+                    strokeWidth='2'
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    aria-hidden='true'
+                  >
+                    <rect x='2' y='3' width='20' height='14' rx='2' />
+                    <path d='M8 21h8' />
+                    <path d='M12 17v4' />
+                    {shared[i] && <path d='M8.5 10l2.5 2.5 4.5-4.5' />}
+                  </svg>
                 </button>
-                <button
-                  className={`${styles.optinPill} ${styles.optinPillSmall} ${shared[i] ? styles.optinPillActive : ''}`}
-                  aria-label={t('reveal.optin.aria')}
-                  onClick={() =>
-                    setShared((s) => s.map((v, j) => (j === i ? true : v)))
-                  }
-                >
-                  {shared[i]
-                    ? t('reveal.optin.shared')
-                    : t('reveal.optin.share')}
-                </button>
-              </div>
-            </div>
+              }
+            />
           </div>
         ))}
       </div>

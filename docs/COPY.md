@@ -195,23 +195,19 @@ The quiet section. Night navy screens (DRD 9.1). Every string is load-bearing; d
 | `reveal.sound.off` | Sound off | 静音 | |
 | `reveal.note.counter` | Note {n} of {count} | 第 {n} 张 · 共 {count} 张 | Top-right during one-by-one reveal (state D). |
 | `reveal.note.aria` | {frame} note: {text} | {frame}便签：{text} | aria-live announcement per note, frame tag first (DRD 3.4). |
-| `reveal.optin.question` | Share this one to the big screen wall? | 把这一张分享到大屏幕吗？ | Per-note opt-in row, defaults to No (PRD RQ7). |
-| `reveal.optin.no` | No | 不用 | Default pill. ZH 不用 (no need), softer than 不. |
-| `reveal.optin.share` | Share | 分享 | |
-| `reveal.optin.shared` | Shared | 已分享 | Pill state after choosing Share, teal with check. |
-| `reveal.optin.aria` | Share this note to the big screen wall, currently not shared | 把这张便签分享到大屏幕，当前未分享 | Switch aria label (DRD 3.4). |
 | `reveal.next` | Next note | 下一张 | Advance button, player-paced. |
 | `reveal.last` | See your whole wall | 看看整面墙 | Final note's button (DRD state D). |
 | `reveal.empty.defensive` | Your notes are on their way. | 你的便签正在路上。 | Defensive only: count hits 0 from post-trigger kills (DRD 2.4). Should never render in practice. |
 | `wall.header` | Your wall | 你的墙 | Full wall screen (state E), with mascot mark. Daylight returns: off-white surface. |
-| `wall.optin.hint` | You can change what's shared until the room ends. | 分享哪几张，在房间结束前都可以改。 | Small line under the wall header (DRD Q2: consent revocable while the room lives). |
+| `wall.share.hint` | Tap the screen button on a note to show it on the big screen wall. You can change this until the room ends. | 点一下便签上的小屏幕按钮，就能把它放上大屏幕。房间结束前，随时可以改。 | Single hint line under the wall header. Explains the per-card share button once (DRD 9.1) and that consent is revocable while the room lives (DRD Q2). |
+| `wall.share.aria` | Show this note on the big screen wall | 把这张便签放上大屏幕 | aria-label for the per-card share button. Shared state is announced via aria-pressed, so the label stays constant. |
 | `wall.export.cta` | Save my wall as an image | 把墙保存为图片 | Pinned primary button. |
 | `wall.export.rendering` | Making your image... | 正在生成图片…… | Button busy state during canvas render. |
 | `wall.export.success` | Saved. This image is your keepsake. The room deletes itself after the session. | 已保存。这张图片是留给你的纪念。活动结束后，房间会自行删除。 | Toast (DRD state E verbatim EN). |
 | `wall.export.fallback` | Press and hold the image to save it | 长按图片即可保存 | iOS Safari fallback instruction over the rendered full-screen image (PRD RQ6). |
 | `wall.export.footer` | Written anonymously by the people in your room. Kindsight. | 这间房里的人，匿名为你写下。Kindsight。 | Keepsake line. Appears on the export image footer and the room-ended card. ZH adds 为你 (for you); it is the emotional payload and reads native. |
 
-32 strings.
+29 strings.
 
 ---
 

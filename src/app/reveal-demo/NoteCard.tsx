@@ -11,6 +11,7 @@ type Props = {
   variant: 'reveal' | 'wall';
   className?: string;
   cardRef?: React.Ref<HTMLDivElement>;
+  cornerAction?: React.ReactNode;
 };
 
 export const NoteCard: React.FC<Props> = ({
@@ -18,6 +19,7 @@ export const NoteCard: React.FC<Props> = ({
   variant,
   className,
   cardRef,
+  cornerAction,
 }) => {
   const frameLabel = t(`frame.${note.frame}.label`);
   return (
@@ -26,7 +28,14 @@ export const NoteCard: React.FC<Props> = ({
       className={`${variant === 'reveal' ? styles.noteCard : styles.wallCard} ${className ?? ''}`}
       tabIndex={variant === 'reveal' ? -1 : undefined}
     >
-      <span className={styles.framePill}>{frameLabel}</span>
+      {cornerAction ? (
+        <div className={styles.cardHeader}>
+          <span className={styles.framePill}>{frameLabel}</span>
+          {cornerAction}
+        </div>
+      ) : (
+        <span className={styles.framePill}>{frameLabel}</span>
+      )}
       <p>{note.content}</p>
     </div>
   );

@@ -17,14 +17,10 @@ export const strings = {
   'reveal.sound.on': 'Sound on',
   'reveal.sound.off': 'Sound off',
   'reveal.note.aria': '{frame} note: {text}',
-  'reveal.optin.question': 'Share to the big screen wall?',
-  'reveal.optin.no': 'No',
-  'reveal.optin.share': 'Share',
-  'reveal.optin.shared': 'Shared',
-  'reveal.optin.aria':
-    'Share this note to the big screen wall, currently not shared',
   'wall.header': 'Your wall',
-  'wall.optin.hint': "You can change what's shared until the room ends.",
+  'wall.share.hint':
+    'Tap the screen button on a note to show it on the big screen wall. You can change this until the room ends.',
+  'wall.share.aria': 'Show this note on the big screen wall',
   'wall.export.cta': 'Save my wall as an image',
   'frame.moment.label': 'Moment',
   'frame.strength.label': 'Strength',
