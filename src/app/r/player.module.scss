@@ -1,0 +1,329 @@
+/* Player flow design system, lifted from the reveal ritual (reveal.module.scss)
+   so the whole pre-reveal flow matches the fidelity of the reveal bar.
+   All values reference tokens from _variables.scss. No new colors. */
+
+/* ---- Aurora ambient background ----
+   Drop <div className={styles.aura} aria-hidden /> once inside each Screen.
+   A fixed, low-opacity glow over the off-white base; never behind text. */
+.aura {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(115% 75% at 50% -8%, rgba(0, 199, 159, 0.1), transparent 55%),
+    radial-gradient(90% 55% at 108% 106%, rgba(255, 243, 214, 0.18), transparent 55%),
+    radial-gradient(85% 55% at -8% 92%, rgba(30, 79, 163, 0.08), transparent 55%);
+}
+
+/* ---- Layout ---- */
+.center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px 20px 40px;
+}
+
+.stageTop {
+  padding-top: 8%;
+  justify-content: flex-start;
+}
+
+/* ---- Clay card ---- */
+.card {
+  background-color: var(--white-color);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+  padding: 16px;
+}
+
+.cardGlow {
+  box-shadow: var(--shadow-soft), var(--glow-teal);
+}
+
+.cardWide {
+  width: 100%;
+  max-width: 420px;
+}
+
+/* ---- Mascot ---- */
+.mascot {
+  width: 132px;
+  height: 132px;
+  object-fit: contain;
+}
+
+.mascotSm {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+}
+
+.bob {
+  animation: bob 4.5s ease-in-out infinite;
+}
+
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* ---- Mode identity pill ---- */
+.modePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  background-color: rgba(0, 199, 159, 0.14);
+  color: var(--accent-deep);
+  font-family: var(--font-league-spartan), var(--font-noto-sc), sans-serif;
+  font-size: 12px;
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Mode A: assigned target banner ---- */
+.targetBanner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background-color: var(--white-color);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft), var(--glow-teal);
+  padding: 16px;
+}
+
+.targetName {
+  font-size: 20px;
+  font-weight: var(--fw-semibold);
+  color: var(--main-color);
+  line-height: 1.2;
+}
+
+.targetLabel {
+  font-family: var(--font-league-spartan), var(--font-noto-sc), sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-color);
+}
+
+/* ---- Mode A: round progress (aurora bar) ---- */
+.progressRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.progressTrack {
+  flex: 1;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background-color: rgba(30, 37, 56, 0.08);
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--aurora);
+  transition: width 350ms ease;
+}
+
+.progressLabel {
+  font-family: var(--font-league-spartan), var(--font-noto-sc), sans-serif;
+  font-size: 13px;
+  color: var(--text-color);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+/* ---- Frame selector ---- */
+.frameRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.frameBtn {
+  flex: 1 1 0;
+  min-width: 92px;
+  min-height: 48px;
+  padding: 0 12px;
+  border-radius: var(--radius-pill);
+  background-color: var(--white-color);
+  box-shadow: var(--shadow-soft);
+  color: var(--main-color);
+  font-family: var(--font-dosis), var(--font-noto-sc), sans-serif;
+  font-size: 15px;
+  font-weight: var(--fw-semibold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease,
+    background-color 150ms ease;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--accent-deep);
+    outline-offset: 3px;
+  }
+}
+
+.frameBtnActive {
+  background-color: var(--accent-color);
+  box-shadow: var(--shadow-soft), var(--glow-teal);
+}
+
+/* ---- Composer ---- */
+.composer {
+  width: 100%;
+  min-height: 140px;
+  resize: vertical;
+  padding: 14px;
+  border-radius: var(--radius-card);
+  border: 2px solid transparent;
+  background-color: var(--white-color);
+  box-shadow: var(--shadow-soft);
+  color: var(--main-color);
+  font-family: var(--font-dosis), var(--font-noto-sc), sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  transition:
+    box-shadow 150ms ease,
+    border-color 150ms ease;
+
+  &:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: var(--shadow-soft), var(--glow-teal);
+  }
+}
+
+.counter {
+  font-family: var(--font-league-spartan), var(--font-noto-sc), sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Read-first accordion ---- */
+.accordionToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  color: var(--accent-deep);
+  font-family: var(--font-dosis), var(--font-noto-sc), sans-serif;
+  font-size: 14px;
+  font-weight: var(--fw-semibold);
+  transition: opacity 150ms ease;
+
+  &:hover {
+    opacity: 0.75;
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--accent-deep);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+}
+
+/* ---- Pinned footer with fade ---- */
+.footer {
+  padding: 12px 20px calc(16px + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, var(--neon-white) 72%, rgba(245, 250, 251, 0));
+}
+
+/* ---- Toast ---- */
+.toast {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--main-color);
+  color: var(--neon-white);
+  padding: 12px 20px;
+  border-radius: var(--radius-control);
+  box-shadow: var(--shadow-soft);
+  font-size: 14px;
+  max-width: 90%;
+  text-align: center;
+  z-index: 20;
+}
+
+/* ---- Briefing dots ---- */
+.dots {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 0;
+}
+
+.dot {
+  width: 22px;
+  height: 6px;
+  border-radius: 4px;
+  background-color: var(--border-color);
+  transition: background-color 150ms ease-in-out, width 150ms ease-in-out;
+}
+
+.dotActive {
+  width: 30px;
+  background-color: var(--accent-color);
+}
+
+/* ---- Entrance motion ---- */
+.rise {
+  animation: rise var(--note-enter) ease-out both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---- Reduced motion ---- */
+@media (prefers-reduced-motion: reduce) {
+  .bob,
+  .rise {
+    animation: none;
+  }
+
+  .frameBtn,
+  .frameBtn:hover,
+  .frameBtn:active {
+    transform: none;
+  }
+
+  .progressFill {
+    transition: none;
+  }
+}

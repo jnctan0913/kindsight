@@ -12,6 +12,8 @@ import {LanguageToggle, useT} from '@/i18n';
 import type {StringKey} from '@/i18n';
 import {useRoomStore} from '@/stores/room';
 
+import styles from '../player.module.scss';
+
 const SLIDE_COUNT = 3;
 
 const frames: {label: StringKey; stem: StringKey; good: StringKey}[] = [
@@ -42,41 +44,29 @@ export const BriefingContent: React.FC = () => {
   const [index, setIndex] = useState(0);
   const swiperRef = useRef<SwiperType | null>(null);
 
-  // Slide 2 tells players how targets are chosen; the copy differs by mode.
+  // Slide 2 tells players how targets are chosen; both copy and the mode badge
+  // differ by mode so the game type is legible at a glance.
   const modeB = mode === 'free_select';
   const slide2 = modeB
     ? {
         img: 'onboarding-rotate-transparent.png',
+        pill: 'player.briefing.mode.b' as StringKey,
         title: 'player.briefing.slide2b.title' as StringKey,
         body: 'player.briefing.slide2b.body' as StringKey,
       }
     : {
         img: 'onboarding-rotate-transparent.png',
+        pill: 'player.briefing.mode.a' as StringKey,
         title: 'player.briefing.slide2a.title' as StringKey,
         body: 'player.briefing.slide2a.body' as StringKey,
       };
 
   const renderDots = () => (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        gap: 6,
-        marginTop: 10,
-        marginBottom: 10,
-      }}
-    >
+    <div className={styles.dots}>
       {Array.from({length: SLIDE_COUNT}).map((_, i) => (
         <div
           key={i}
-          style={{
-            width: 22,
-            height: 6,
-            borderRadius: 4,
-            backgroundColor: index === i ? 'var(--main-color)' : 'var(--border-color)',
-            transition: 'background-color 150ms ease-in-out',
-          }}
+          className={`${styles.dot} ${index === i ? styles.dotActive : ''}`}
         />
       ))}
     </div>
@@ -138,6 +128,9 @@ export const BriefingContent: React.FC = () => {
         aria-hidden='true'
         style={illustrationStyle}
       />
+      <div style={{display: 'flex', justifyContent: 'center', marginTop: 12}}>
+        <span className={styles.modePill}>{t(slide2.pill)}</span>
+      </div>
       <h2 style={{marginTop: 12, textAlign: 'center'}}>{t(slide2.title)}</h2>
       <p className='t16' style={{marginTop: 8, textAlign: 'center'}}>
         {t(slide2.body)}
@@ -178,6 +171,7 @@ export const BriefingContent: React.FC = () => {
 
   return (
     <components.Screen>
+      <div className={styles.aura} aria-hidden='true' />
       <components.Header title={t('player.briefing.title')} rightSlot={<LanguageToggle />} />
       {renderDots()}
 
@@ -206,6 +200,7 @@ export const BriefingContent: React.FC = () => {
             label={t('common.continue')}
             onClick={() => swiperRef.current?.slideNext()}
             colorScheme='secondary'
+            className='pressable'
             style={{
               textTransform: 'none',
               boxShadow: 'var(--shadow-soft), inset 0 1px 0 rgba(255, 255, 255, 0.08)',

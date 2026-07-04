@@ -9,6 +9,8 @@ import {LanguageToggle, useT} from '@/i18n';
 import {Routes} from '@/routes';
 import {useRoomStore} from '@/stores/room';
 
+import styles from '../player.module.scss';
+
 export const EndedCard: React.FC = () => {
   const t = useT();
   const router = useRouter();
@@ -23,34 +25,30 @@ export const EndedCard: React.FC = () => {
 
   return (
     <components.Screen>
+      <div className={styles.aura} aria-hidden='true' />
       <components.Header rightSlot={<LanguageToggle />} />
-      <main
-        className='container scrollable'
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          paddingBottom: 40,
-          textAlign: 'center',
-        }}
-      >
+      <main className={`container scrollable ${styles.center}`}>
         <img
-          src={asset('/assets/kindsight/empty-lobby-soft.png')}
+          src={asset('/assets/kindsight/kindsight-mascot-only.png')}
           alt=''
           aria-hidden='true'
-          style={{width: '60%', maxWidth: 320, height: 'auto'}}
+          className={styles.mascot}
         />
-        <h2 style={{marginTop: 16}}>{t('player.ended.title')}</h2>
-        <p className='t16' style={{marginTop: 8}}>
-          {t('player.ended.body')}
-        </p>
+        <div
+          className={`${styles.card} ${styles.cardWide} ${styles.rise}`}
+          style={{marginTop: 24}}
+        >
+          <h2>{t('player.ended.title')}</h2>
+          <p className='t16' style={{marginTop: 8}}>
+            {t('player.ended.body')}
+          </p>
+        </div>
         <components.Button
           label={t('player.ended.home')}
           onClick={goHome}
           colorScheme='secondary'
-          containerStyle={{marginTop: 24, width: '100%', maxWidth: 400}}
+          className='pressable'
+          containerStyle={{marginTop: 24, width: '100%', maxWidth: 420}}
           style={{
             textTransform: 'none',
             boxShadow:
