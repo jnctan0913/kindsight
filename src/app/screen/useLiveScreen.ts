@@ -6,6 +6,7 @@ import {BASE_PATH} from '../../config';
 import {getBigscreenState} from '../../lib/api';
 import type {ScreenRoomState} from '../../lib/hostRoomSync';
 import {subscribeToRoom, type RoomSubscription} from '../../lib/realtime';
+import {ensureSession} from '../../lib/supabase/auth';
 import {isSupabaseConfigured} from '../../lib/supabase/client';
 import type {BigscreenState} from '../../lib/types';
 
@@ -90,6 +91,9 @@ export function useLiveScreenState(code: string | null): LiveScreen {
 
     const pull = async () => {
       try {
+        // get_bigscreen_state is granted to authenticated only; the projector
+        // needs an anonymous session before it can read the room.
+        await ensureSession();
         const bs = await getBigscreenState(code);
         if (cancelled) return;
         if (!bs.found) {

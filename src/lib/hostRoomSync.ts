@@ -106,9 +106,10 @@ export function removeActiveRoom(code: string): void {
 
 export function useScreenRoomState(code: string | null): ScreenRoomState | null {
   const normalized = code?.trim().toUpperCase() ?? null;
-  const [state, setState] = useState<ScreenRoomState | null>(() =>
-    normalized ? readScreenState(normalized) : null,
-  );
+  // Init null (not a localStorage read) so the first client render matches the
+  // server. The effect below loads the stored state right after mount; reading
+  // localStorage during render would cause a hydration mismatch.
+  const [state, setState] = useState<ScreenRoomState | null>(null);
 
   const refresh = useCallback(() => {
     if (!normalized) {

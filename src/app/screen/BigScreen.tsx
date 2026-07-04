@@ -4,7 +4,7 @@ import React, {useMemo} from 'react';
 import {useSearchParams} from 'next/navigation';
 
 import {useT} from '../../i18n';
-import {readScreenState, useScreenRoomState, type ScreenRoomState} from '../../lib/hostRoomSync';
+import {useScreenRoomState, type ScreenRoomState} from '../../lib/hostRoomSync';
 import {MOCK_HOST_ROOM} from '../../mock/room';
 import styles from './BigScreen.module.scss';
 import {ProjectorView} from './ProjectorView';
@@ -42,16 +42,27 @@ export const BigScreen: React.FC = () => {
 
   const state = useMemo(() => {
     if (!code) return null;
-    // Live Supabase room is the source of truth when present.
-    if (live.status === 'ready') return live.state;
-    // Supabase configured but still resolving or the room is gone: prefer a
-    // same-machine localStorage frame if one exists, else show the waiting card
-    // rather than fabricating a mock room.
+    // Live Supabase room is the source of truth for phase, counts, and
+    // highlights. The briefing frame index and active prompt are host-ephemeral
+    // and published to localStorage for the same-machine "Open big screen"; when
+    // present, overlay them so the projector follows the console's controls.
+    if (live.status === 'ready') {
+      return synced
+        ? {
+            ...live.state,
+            briefingIndex: synced.briefingIndex,
+            activePrompt: synced.activePrompt,
+          }
+        : live.state;
+    }
+    // Supabase configured but still resolving or the room is gone: use the
+    // same-machine localStorage frame if one exists (null renders the waiting
+    // card), never a fabricated mock room.
     if (live.status === 'loading' || live.status === 'not_found') {
-      return synced ?? readScreenState(code);
+      return synced;
     }
     // No Supabase env: demo/preview path.
-    return synced ?? readScreenState(code) ?? defaultState(code);
+    return synced ?? defaultState(code);
   }, [code, live, synced]);
 
   if (!code) {
