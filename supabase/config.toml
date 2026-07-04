@@ -196,7 +196,8 @@ email_sent = 2
 sms_sent = 30
 # Number of anonymous sign-ins that can be made per hour per IP address. Requires enable_anonymous_sign_ins = true.
 # Raised per ENG-PLAN F4/D17: a whole room joins from one conference NAT IP.
-anonymous_users = 300
+# 200/hr for now; the M7 single-IP load test sets the final value.
+anonymous_users = 200
 # Number of sessions that can be refreshed in a 5 minute interval per IP address.
 token_refresh = 150
 # Number of sign up and sign-in requests that can be made in a 5 minute interval per IP address (excludes anonymous users).

@@ -49,12 +49,34 @@ begin
     create role kindsight_api nologin;
   end if;
   execute format('grant kindsight_api to %I', current_user);
+  -- Membership in authenticated carries the hosted grants kindsight_api
+  -- cannot receive directly (usage on realtime for realtime.send). Hosted
+  -- Supabase may refuse; kindsight_notify degrades to pg_notify then.
+  begin
+    grant authenticated to kindsight_api;
+  exception when others then
+    raise notice 'grant authenticated to kindsight_api skipped: %', sqlerrm;
+  end;
 end
 $$;
 
-grant usage on schema public to kindsight_api;
+-- create on public: receiving table ownership requires it on hosted Supabase.
+grant usage, create on schema public to kindsight_api;
 grant usage on schema extensions to kindsight_api;
-grant usage on schema auth to kindsight_api;
+
+-- GUC-based caller identity, equivalent to auth.uid(). Self-contained on
+-- purpose: the hosted migration role cannot grant kindsight_api usage on
+-- the auth schema, so definer functions must not depend on it.
+create or replace function public.kindsight_uid()
+returns uuid
+language sql
+stable
+as $$
+  select nullif(coalesce(
+    nullif(current_setting('request.jwt.claim.sub', true), ''),
+    nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub'
+  ), '')::uuid
+$$;
 
 create type public.room_mode  as enum ('round_robin', 'free_select');
 create type public.room_phase as enum ('lobby', 'briefing', 'writing', 'reveal', 'wrapup');
@@ -139,6 +161,8 @@ create table public.rooms_attempts (
   count        int not null default 1,
   primary key (uid, window_start)
 );
+
+alter function public.kindsight_uid() owner to kindsight_api;
 
 alter table public.rooms          owner to kindsight_api;
 alter table public.participants   owner to kindsight_api;

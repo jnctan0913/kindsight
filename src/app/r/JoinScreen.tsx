@@ -55,7 +55,7 @@ export const JoinScreen: React.FC = () => {
         />
         <p
           className='t14'
-          style={{marginTop: 4, textAlign: 'center'}}
+          style={{marginTop: 2, textAlign: 'center'}}
         >
           {t('app.tagline')}
         </p>

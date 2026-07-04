@@ -19,14 +19,22 @@ export default function Home() {
         backgroundColor: 'var(--neon-white)',
       }}
     >
-      <img
-        src={asset('/assets/kindsight/kindsight-logo-transparent.png')}
-        alt='Kindsight'
-        style={{width: '60%', maxWidth: 280, height: 'auto'}}
-      />
-      <p className='t16' style={{color: 'var(--text-color)', marginTop: -8}}>
-        The light behind you
-      </p>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}
+      >
+        <img
+          src={asset('/assets/kindsight/kindsight-logo-transparent.png')}
+          alt='Kindsight'
+          style={{width: '60%', maxWidth: 280, height: 'auto'}}
+        />
+        <p className='t16' style={{color: 'var(--text-color)', marginTop: 2}}>
+          The light behind you
+        </p>
+      </div>
       <Link
         href={Routes.REVEAL_DEMO}
         style={{

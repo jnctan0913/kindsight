@@ -23,6 +23,8 @@ as $$
   end
 $$;
 
+alter function public.kindsight_next_phase(public.room_phase) owner to kindsight_api;
+
 -- Content-free broadcast ping. realtime.send exists only on Supabase stacks;
 -- on plain Postgres (and on any transient realtime failure) fall back to
 -- pg_notify so a game write is never aborted by the event bus.
@@ -96,7 +98,7 @@ declare
   v_under_floor text;
 begin
   if new.phase is distinct from old.phase then
-    if auth.uid() is null or auth.uid() <> old.host_id then
+    if public.kindsight_uid() is null or public.kindsight_uid() <> old.host_id then
       raise exception 'only the host can change the phase' using errcode = '42501';
     end if;
 
@@ -104,8 +106,10 @@ begin
       raise exception 'phase can only advance to the next phase';
     end if;
 
-    -- Mode A cannot enter briefing without a complete rotation schedule.
-    if old.phase = 'lobby' and old.mode = 'round_robin' then
+    -- Mode A cannot enter writing without a complete rotation schedule.
+    -- The schedule is generated server-side by advance_phase at writing
+    -- start (D7), so the check sits on briefing -> writing.
+    if old.phase = 'briefing' and old.mode = 'round_robin' then
       if old.round_count is null or (
         select count(distinct a.round)
         from public.assignments a
