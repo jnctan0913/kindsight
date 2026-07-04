@@ -169,7 +169,7 @@ As an organizer, I can show anonymized highlights after the reveal.
 **R2. Refresh recovery:** any surface (player, host, big screen) recovers full state on page refresh via the session token.
 **R3. Dropped connections:** the app reconnects to realtime automatically and reconciles missed phase or round changes.
 **R4. Tiny groups:** below 6 players the app warns the host that rotation anonymity weakens and recommends free select or extra shuffling.
-**R5. Host disconnect:** the game state persists server-side; the host reclaims the console on reconnect and the room does not die with the host's laptop.
+**R5. Host disconnect:** the game state persists server-side. A signed-in host reopens the console from any device on the same account. Rooms also support an optional reclaim secret link for handoff without sharing the host login (superseded for v1 primary flow by host accounts, retained as backup).
 
 ## P0 Features (RICE, simplified)
 
@@ -198,7 +198,7 @@ Reach is players per typical session cohort per quarter (assumed 500). Effort in
 ## Constraints
 
 - **Stack (locked):** Next.js 15 static export (output: 'export') on GitHub Pages, PWA enabled. Supabase free tier for database and realtime with tables rooms, participants, notes. Row-level security enforces that nobody reads notes about themselves until room phase = reveal. All game logic must live client-side or in Supabase (RLS, policies), since GitHub Pages serves static files only.
-- **No accounts:** roster claim plus Supabase anonymous auth session token bound to participant ID, surviving refresh.
+- **Accounts:** players remain accountless (roster claim plus Supabase anonymous auth session token bound to participant ID, surviving refresh). **Hosts sign up and sign in** with Supabase email/password auth so they can create rooms, reopen active sessions from any device, and own rooms across reconnects. Email confirmations are off for the current private beta; revisit before public launch. Player and host auth never mix on the same device in normal use.
 - **UI (locked):** components and layout reuse the purchased BrainNest Next.js mobile kit. Host console design references the BrainNest Laravel/Orchid admin template as visual reference only, no PHP.
 - **Design tokens (locked, revised 2026-07-04 to match the generated logo):** navy ink #1E2538, off-white #F5FAFB. Lead accent is the aurora glow gradient from the mascot's back: deep blue through teal #00C79F to warm cream. Teal #00C79F is the promoted solid accent (matches the wordmark's "i" dot). Sky blue secondary for host surfaces. Fonts: Dosis and League Spartan. Brand assets live in `assets/logo/` (transparent logo, mascot-only crop).
 - **Bilingual:** English default, Chinese toggle covering UI and the three writing frames.
@@ -207,7 +207,7 @@ Reach is players per typical session cohort per quarter (assumed 500). Effort in
 ## Out of Scope for v1
 
 - Native iOS/Android apps
-- Accounts and sign-in
+- Player accounts and sign-in (hosts only; players stay anonymous)
 - Multi-room organizations or recurring team spaces
 - Analytics dashboards
 - AI content moderation (v1 relies on the soft validator plus the host kill switch)

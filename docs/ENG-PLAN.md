@@ -563,7 +563,7 @@ Database migrations: `supabase/migrations/*.sql` in the repo, applied with `supa
 
 1. Create project (free tier), region closest to expected sessions (Singapore per event context).
 2. Enable anonymous sign-ins (Auth settings). **Raise the anonymous sign-in per-IP rate limit** to the M7-validated value (~300/hr) for conference wifi.
-3. Disable all other auth providers. Disable email signups.
+3. Disable all other auth providers. Enable email/password signups for hosts. Keep email confirmations off for the current private beta, then revisit before public launch.
 4. Enable `pg_cron` and `pgcrypto` extensions.
 5. `supabase db push` migrations; run the vitest matrix against the live project once.
 6. Realtime: nothing to enable beyond defaults; broadcast-from-database works via the `realtime.messages` policy in migrations.

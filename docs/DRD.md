@@ -75,6 +75,8 @@ Player (single route, phase-driven)
 
 Host console
   /host
+    +-- Host sign in / sign up (email + password)
+    +-- Console home / hub (start game, rehearse, reopen room, open big screen)
     +-- Create room (mode, rounds, timer)
     +-- Roster builder
     +-- Lobby
@@ -83,8 +85,8 @@ Host console
     +-- End and delete (confirm dialog)
 
 Big screen
-  /screen/[code]   (read-only, follows phase)
-    +-- Lobby -> Writing -> Reveal interstitial -> Highlight wall / closing
+  /screen/?code=   (read-only, follows phase; host opens in a second tab)
+    +-- Lobby -> Briefing frames -> Writing -> Reveal interstitial -> Highlight wall / closing
 ```
 
 ### 2.4 Edge, empty, and error states
@@ -94,7 +96,7 @@ Big screen
 | Late joiner | Player | Roster shows only unclaimed names. After claiming mid-game, an interstitial explains where the game is ("Round 2 of 4 is in progress. You join from the next round."). Mode A inserts them next round. |
 | Refresh recovery | All | Session token restores identity and phase silently. Show a 300ms skeleton, never a login wall. If the token is invalid, fall back to the claim screen with remaining names. |
 | Disconnected | Player, host | Persistent slim banner pinned below the header: navy background, "Reconnecting..." with spinner. Composer stays usable; submit queues and the button label changes to "Will send when reconnected". Banner turns teal "Reconnected" for 2s, then dismisses. |
-| Host disconnect | Host | Room lives server-side. Reopening the host URL with the host token restores the console at the current phase. Show "Welcome back. The room kept running." toast. |
+| Host disconnect | Host | Room lives server-side. A signed-in host reopens the console at the current phase from any device on the same account. Optional reclaim secret link remains for handoff. Show "Welcome back. The room kept running." toast. |
 | Tiny group (under 6) | Host | Amber callout on Create Room when roster count < 6: "Rotation anonymity weakens under 6 players. We recommend Free select or extra shuffling." Non-blocking. |
 | Reveal floor unmet (Mode B) | Host | Reveal button disabled with inline reason: "2 players are under 3 notes" plus the exact names highlighted in the coverage list. |
 | Empty roster paste | Host | Inline hint under the textarea: "One name per line". |
@@ -434,6 +436,8 @@ Join progress renders as filled dots, one per roster slot, filling with a 250ms 
 
 **Writing:** phase title ("Writing round 2 of 4" or "Writing in progress"), the shared countdown timer at counter scale, and one ambient stat: total notes written, ticking upward with a soft scale pulse per increment. Sparkle particles drift on the aurora at low density. **Never note content, never names, never who-wrote-to-whom.**
 
+**Briefing:** the three frame stems at distance scale ("I noticed you...", "I think you're strong at...", "I hope you...") plus one good example per frame. Reinforces the host's verbal briefing. No player names, no note content.
+
 **Reveal interstitial:** the screen goes intentionally quiet. Deep navy full-bleed, the mascot centered, one line at headline scale: "Look at your phone. Take three breaths." This dims the room and pushes all attention to the phones. The big screen holds this state until the host enables the highlight wall or advances.
 
 **Highlight wall (Wrap-up, host-toggled):** opted-in notes only, as large NoteCards in a slow crossfading rotation (one note at a time, 8s dwell, 600ms crossfade). Anonymized: no author ever; recipient name shown only because the recipient opted that specific note in (PRD B3 and Resolved Question 7). Frame tag pill on each card. Reduced-motion equivalent: hard cuts, no crossfade.
@@ -471,17 +475,20 @@ Join progress renders as filled dots, one per roster slot, filling with a 250ms 
 | 7 | Locked wall | Player | Screen | NoteWall (locked variant), NoteCard (silhouette) |
 | 8 | Reveal | Player | Screen, Button | HoldToRevealButton, RevealSequence, NoteCard, FrameTag, OptInToggle |
 | 9 | My wall + export | Player | Screen, Button, BlockHeading | NoteWall, WallExportRenderer, Toast |
-| 10 | Create room | Host | Button, InputField (form idiom) | ConsoleShell, ModeCardPicker, StepperInput, Callout |
-| 11 | Roster builder | Host | InputField, Button | RosterChip (editable), PasteList |
-| 12 | Lobby | Host | Button | ConsoleShell, QRPanel, ClaimStatusTable |
-| 13 | In-game console | Host | Button | PhaseStepper, RoundControlCard, CoverageBar, ModerationFeed, ConnectionBanner |
-| 14 | Wrap-up console | Host | Button | RevealTriggerCard, RevealStatusList, HighlightToggle, PromptDeck, ConfirmDialog |
-| 15 | Big screen lobby | Big screen | none (custom scale) | QRPanel (XL), JoinProgressDots, AuroraBackground |
-| 16 | Big screen writing | Big screen | none | BigScreenStat, RoundTimer (XL) |
-| 17 | Reveal interstitial | Big screen | none | (static composition) |
-| 18 | Highlight wall | Big screen | none | HighlightWall, NoteCard (XL), FrameTag (XL) |
+| 10 | Host sign in | Host | InputField, Button | (sign-in layout) |
+| 11 | Console home / hub | Host | Button | ConsoleShell (hub variant) |
+| 12 | Create room | Host | Button, InputField (form idiom) | ConsoleShell, ModeCardPicker, StepperInput, Callout |
+| 13 | Roster builder | Host | InputField, Button | RosterChip (editable), PasteList |
+| 14 | Lobby | Host | Button | ConsoleShell, QRPanel, ClaimStatusTable |
+| 15 | In-game console | Host | Button | PhaseStepper, RoundControlCard, CoverageBar, ModerationFeed, ConnectionBanner |
+| 16 | Wrap-up console | Host | Button | RevealTriggerCard, RevealStatusList, HighlightToggle, PromptDeck, ConfirmDialog |
+| 17 | Big screen lobby | Big screen | none (custom scale) | QRPanel (XL), JoinProgressDots, AuroraBackground |
+| 18 | Big screen briefing | Big screen | none | FrameTag (XL), briefing examples |
+| 19 | Big screen writing | Big screen | none | BigScreenStat, RoundTimer (XL) |
+| 20 | Reveal interstitial | Big screen | none | (static composition) |
+| 21 | Highlight wall | Big screen | none | HighlightWall, NoteCard (XL), FrameTag (XL) |
 
-Counts: **Player 9 screens** (4 and 6 share the composer), **Host 5 screens plus 1 confirm dialog**, **Big screen 4 states**.
+Counts: **Player 9 screens** (4 and 6 share the composer), **Host 7 screens plus 1 confirm dialog**, **Big screen 5 states**.
 
 ### 7.3 New components to build (canonical list)
 
