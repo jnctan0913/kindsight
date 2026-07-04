@@ -37,9 +37,14 @@ export const LanguageToggle: React.FC = () => {
             aria-pressed={active}
             className='clickable'
             style={{
+              minWidth: 44,
               height: 38,
               padding: '0 14px',
               borderRadius: 'var(--radius-pill)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              lineHeight: 1,
               fontSize: 14,
               fontWeight: 600,
               fontFamily: 'var(--font-dosis), var(--font-noto-sc), sans-serif',
