@@ -55,6 +55,10 @@ const en = {
   'player.claim.closed.title': 'Joining is closed',
   'player.claim.closed.body':
     'This room is past the point where new names can join.',
+  'player.hostSession.title': "You're the host here",
+  'player.hostSession.body':
+    'This browser is signed in as the host of this room. To play along, join from another device or an incognito window. To run the room, open the host console.',
+  'player.hostSession.cta': 'Open host console',
   'player.claim.error': 'Something went wrong. Try again.',
   'player.claim.race': 'Someone just took that name. Pick another.',
 
@@ -396,6 +400,10 @@ const zh: Record<StringKey, string> = {
   'player.loading': '正在加载房间……',
   'player.claim.closed.title': '现在无法加入',
   'player.claim.closed.body': '这个房间已经过了可以加入的阶段。',
+  'player.hostSession.title': '你是这个房间的主持人',
+  'player.hostSession.body':
+    '这个浏览器已作为本房间的主持人登录。想以玩家身份参与，请用另一台设备或无痕窗口加入；想主持房间，请打开主持人控制台。',
+  'player.hostSession.cta': '打开主持人控制台',
   'player.claim.error': '出了点问题，请重试。',
   'player.claim.race': '这个名字刚被别人认领了，换一个吧。',
 

@@ -11,6 +11,7 @@ import {ConnectionBanner} from '@/components/ConnectionBanner';
 import {JoinPrompt} from './screens/JoinPrompt';
 import {ClaimContent} from './screens/ClaimContent';
 import {ClaimClosed} from './screens/ClaimClosed';
+import {HostSessionNotice} from './screens/HostSessionNotice';
 import {BriefingContent} from './screens/BriefingContent';
 import {LobbyWait} from './screens/LobbyWait';
 import {WriteContent} from './screens/WriteContent';
@@ -127,8 +128,9 @@ export const PlayerFlow: React.FC = () => {
         body = <LoadingView label={t('player.loading')} />;
     }
   } else {
-    // A host session that lands on /r: nothing player-shaped to show.
-    body = <ClaimClosed />;
+    // A host session that lands on /r (same-browser testing): point to the
+    // console and how to join as a player, instead of a dead-end closed card.
+    body = <HostSessionNotice />;
   }
 
   return (
