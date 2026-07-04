@@ -6,6 +6,8 @@ import {asset} from '../../../config';
 import {LanguageToggle, useT} from '../../../i18n';
 import type {StringKey} from '../../../i18n';
 import {PhaseStepper, type HostPhase} from './PhaseStepper';
+import {EndRoomDialog} from './EndRoomDialog';
+import {HostIcon} from './HostIcon';
 import styles from './ConsoleShell.module.scss';
 
 type BaseProps = {
@@ -24,6 +26,10 @@ type GameProps = BaseProps & {
   phase: HostPhase;
   playerCount: number;
   noteCount: number;
+  // Hard delete, reachable from every live phase via the sidebar.
+  onEndRoom?: () => void;
+  // Rewind one server phase. Omit to hide (e.g. at lobby, nothing to go back to).
+  onRewind?: () => void;
 };
 
 type HubProps = BaseProps & {
@@ -32,6 +38,8 @@ type HubProps = BaseProps & {
   phase?: never;
   playerCount?: never;
   noteCount?: never;
+  onEndRoom?: never;
+  onRewind?: never;
 };
 
 type Props = GameProps | HubProps;
@@ -49,15 +57,23 @@ export const ConsoleShell: React.FC<Props> = (props) => {
     if (hasPreview) setPreviewOpen(window.innerWidth >= 1280);
   }, [hasPreview]);
 
+  const [endOpen, setEndOpen] = useState(false);
+
   return (
     <div className={styles.shell}>
       <aside className={styles.sidebar}>
         <div className={styles.brand}>
-          <img
-            src={asset('/assets/kindsight/kindsight-logo-transparent.png')}
-            alt='Kindsight'
-            className={styles.logo}
-          />
+          <div className={styles.brandRow}>
+            <span className={styles.mark}>
+              <img
+                src={asset('/assets/kindsight/kindsight-mascot-only.png')}
+                alt=''
+                aria-hidden='true'
+                className={styles.markImg}
+              />
+            </span>
+            <span className={styles.wordmark}>{t('app.name')}</span>
+          </div>
           {isHub ? (
             <div className={styles.roomChip}>
               <p className={styles.code}>{t('host.hub.sidebar')}</p>
@@ -71,8 +87,9 @@ export const ConsoleShell: React.FC<Props> = (props) => {
           )}
         </div>
 
-        <div className={styles.footer}>
-          {!isHub && (
+        {/* Session-related controls sit at the top, next to the room context. */}
+        {!isHub && (
+          <div className={styles.sessionNav}>
             <div className={styles.stats}>
               <span className={styles.stat}>
                 {t('host.stats.players', {count: props.playerCount})}
@@ -81,13 +98,38 @@ export const ConsoleShell: React.FC<Props> = (props) => {
                 {t('host.stats.notes', {count: props.noteCount})}
               </span>
             </div>
-          )}
-          {props.onHome && (
+            {props.onHome && (
+              <button
+                type='button'
+                className={`clickable ${styles.navItem}`}
+                onClick={props.onHome}
+              >
+                <HostIcon name='home' size={16} color='var(--neon-white)' />
+                {t('host.hub.home')}
+              </button>
+            )}
+            {props.onEndRoom && (
+              <button
+                type='button'
+                className={`clickable ${styles.dangerItem}`}
+                onClick={() => setEndOpen(true)}
+              >
+                <HostIcon name='delete' size={16} color='var(--warn-color)' />
+                {t('host.wrap.end.cta')}
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Standard controls (account, language) stay pinned at the bottom. */}
+        <div className={styles.footer}>
+          {isHub && props.onHome && (
             <button
               type='button'
               className={`clickable ${styles.navItem}`}
               onClick={props.onHome}
             >
+              <HostIcon name='home' size={16} color='var(--neon-white)' />
               {t('host.hub.home')}
             </button>
           )}
@@ -97,6 +139,7 @@ export const ConsoleShell: React.FC<Props> = (props) => {
               className={`clickable ${styles.navItem}`}
               onClick={props.onSignOut}
             >
+              <HostIcon name='signout' size={16} color='var(--neon-white)' />
               {t('host.login.signOut')}
             </button>
           )}
@@ -108,18 +151,30 @@ export const ConsoleShell: React.FC<Props> = (props) => {
         {!isHub && (
           <div className={styles.headerBar}>
             <PhaseStepper current={props.phase} />
-            {hasPreview && (
-              <button
-                type='button'
-                className={`clickable ${styles.previewToggle} ${
-                  previewOpen ? styles.previewToggleOn : ''
-                }`}
-                aria-pressed={previewOpen}
-                onClick={() => setPreviewOpen((v) => !v)}
-              >
-                {t('host.preview.title' as StringKey)}
-              </button>
-            )}
+            <div className={styles.headerActions}>
+              {props.onRewind && (
+                <button
+                  type='button'
+                  className={`clickable ${styles.previewToggle}`}
+                  onClick={props.onRewind}
+                >
+                  {'‹ '}
+                  {t('host.nav.rewind')}
+                </button>
+              )}
+              {hasPreview && (
+                <button
+                  type='button'
+                  className={`clickable ${styles.previewToggle} ${
+                    previewOpen ? styles.previewToggleOn : ''
+                  }`}
+                  aria-pressed={previewOpen}
+                  onClick={() => setPreviewOpen((v) => !v)}
+                >
+                  {t('host.preview.title' as StringKey)}
+                </button>
+              )}
+            </div>
           </div>
         )}
 
@@ -145,6 +200,18 @@ export const ConsoleShell: React.FC<Props> = (props) => {
           <div className={styles.actionBar}>{props.primaryAction}</div>
         )}
       </div>
+
+      {!isHub && props.onEndRoom && (
+        <EndRoomDialog
+          open={endOpen}
+          code={props.code}
+          onClose={() => setEndOpen(false)}
+          onConfirm={() => {
+            setEndOpen(false);
+            props.onEndRoom?.();
+          }}
+        />
+      )}
     </div>
   );
 };

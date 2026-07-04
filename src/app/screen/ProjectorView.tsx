@@ -1,6 +1,7 @@
 'use client';
 
 import React, {useEffect, useState} from 'react';
+import {QRCodeSVG} from 'qrcode.react';
 
 import {asset} from '../../config';
 import {useT} from '../../i18n';
@@ -147,20 +148,46 @@ export const ProjectorView: React.FC<Props> = ({state, preview = false}) => {
 
   return (
     <div className={`${shellClass} ${styles.lobbyShell}`}>
-      <img
-        src={asset('/assets/kindsight/kindsight-logo-transparent.png')}
-        alt='Kindsight'
-        className={styles.logo}
-      />
       <div className={styles.lobbyGrid}>
-        <div>
-          <p className={styles.subcopy}>{t('screen.lobby.joinAt')}</p>
-          <p className={styles.subcopy}>{state.joinUrl}</p>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '2vh',
+          }}
+        >
+          <img
+            src={asset('/assets/kindsight/mascot-cheer.png')}
+            alt=''
+            aria-hidden='true'
+            style={{width: 'clamp(160px, 18vw, 300px)', height: 'auto'}}
+          />
+          <img
+            src={asset('/assets/kindsight/kindsight-wordmark.png')}
+            alt='Kindsight'
+            style={{width: 'clamp(140px, 14vw, 240px)', height: 'auto'}}
+          />
         </div>
-        <div aria-hidden='true' className={styles.qrBlock} />
+        <div className={styles.qrBlock}>
+          <QRCodeSVG
+            value={state.joinUrl}
+            level='M'
+            marginSize={2}
+            bgColor='#ffffff'
+            fgColor='#1E2538'
+            style={{width: '100%', height: '100%', display: 'block'}}
+          />
+        </div>
         <div>
           <p className={styles.subcopy}>{t('screen.lobby.roomCode')}</p>
           <p className={styles.code}>{state.code}</p>
+          <p
+            className={styles.subcopy}
+            style={{marginTop: '1.5vh', wordBreak: 'break-all'}}
+          >
+            {state.joinUrl}
+          </p>
         </div>
       </div>
       <p className={styles.subcopy} style={{marginTop: '4vh'}}>

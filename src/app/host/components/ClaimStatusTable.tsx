@@ -8,6 +8,8 @@ import {dosisFont, numFont} from './hostStyles';
 
 type Props = {
   roster: HostRosterEntry[];
+  onRename?: (id: string, name: string) => void;
+  onRemove?: (id: string) => void;
 };
 
 const cellStyle: React.CSSProperties = {
@@ -24,8 +26,20 @@ const actionLabel: React.CSSProperties = {
   fontFamily: dosisFont,
 };
 
-export const ClaimStatusTable: React.FC<Props> = ({roster}) => {
+export const ClaimStatusTable: React.FC<Props> = ({roster, onRename, onRemove}) => {
   const t = useT();
+
+  const promptRename = (id: string, current: string) => {
+    if (!onRename) return;
+    const next = window.prompt(t('host.lobby.rename.prompt', {name: current}), current);
+    const trimmed = next?.trim();
+    if (trimmed && trimmed !== current) onRename(id, trimmed);
+  };
+
+  const confirmRemove = (id: string, name: string) => {
+    if (!onRemove) return;
+    if (window.confirm(t('host.lobby.remove.confirm', {name}))) onRemove(id);
+  };
 
   return (
     <div style={{overflowX: 'auto'}}>
@@ -88,15 +102,26 @@ export const ClaimStatusTable: React.FC<Props> = ({roster}) => {
               </td>
               <td style={{...cellStyle, textAlign: 'right'}}>
                 <span style={{display: 'inline-flex', gap: 14}}>
-                  <button className='clickable' style={actionLabel}>
-                    {t('host.lobby.action.rename')}
-                  </button>
-                  <button className='clickable' style={actionLabel}>
-                    {t('host.lobby.action.reassign')}
-                  </button>
-                  <button className='clickable' style={actionLabel}>
-                    {t('host.lobby.action.remove')}
-                  </button>
+                  {onRename && (
+                    <button
+                      type='button'
+                      className='clickable'
+                      style={actionLabel}
+                      onClick={() => promptRename(entry.id, entry.name)}
+                    >
+                      {t('host.lobby.action.rename')}
+                    </button>
+                  )}
+                  {onRemove && (
+                    <button
+                      type='button'
+                      className='clickable'
+                      style={{...actionLabel, color: 'var(--warn-color)'}}
+                      onClick={() => confirmRemove(entry.id, entry.name)}
+                    >
+                      {t('host.lobby.action.remove')}
+                    </button>
+                  )}
                 </span>
               </td>
             </tr>

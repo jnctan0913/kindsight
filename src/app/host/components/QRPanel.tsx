@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, {useState} from 'react';
 
 import {useT} from '../../../i18n';
 import {consoleCard, numFont, dosisFont} from './hostStyles';
@@ -13,6 +13,26 @@ type Props = {
 
 export const QRPanel: React.FC<Props> = ({code, joinUrl, onOpenBigScreen}) => {
   const t = useT();
+  const [copied, setCopied] = useState(false);
+
+  const share = async () => {
+    const text = t('host.hub.session.shareText', {code});
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({title: t('app.name'), text, url: joinUrl});
+        return;
+      } catch {
+        /* dismissed: fall through to copy */
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(joinUrl);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1800);
+    } catch {
+      /* clipboard blocked */
+    }
+  };
 
   return (
     <div style={{...consoleCard, textAlign: 'center'}}>
@@ -49,26 +69,52 @@ export const QRPanel: React.FC<Props> = ({code, joinUrl, onOpenBigScreen}) => {
       >
         {t('host.lobby.qr.hint')}
       </p>
-      {onOpenBigScreen && (
+      <div
+        style={{
+          marginTop: 16,
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 8,
+          justifyContent: 'center',
+        }}
+      >
         <button
           type='button'
           className='clickable'
-          onClick={onOpenBigScreen}
+          onClick={() => void share()}
           style={{
-            marginTop: 16,
             padding: '10px 18px',
             borderRadius: 'var(--radius-pill)',
-            border: 'none',
-            backgroundColor: 'var(--main-color)',
-            color: 'var(--neon-white)',
+            border: '1px solid var(--main-color)',
+            backgroundColor: 'var(--white-color)',
+            color: 'var(--main-color)',
             fontSize: 14,
             fontWeight: 600,
             fontFamily: dosisFont,
           }}
         >
-          {t('host.bigscreen.open')}
+          {copied ? t('host.hub.session.copied') : t('host.hub.session.share')}
         </button>
-      )}
+        {onOpenBigScreen && (
+          <button
+            type='button'
+            className='clickable'
+            onClick={onOpenBigScreen}
+            style={{
+              padding: '10px 18px',
+              borderRadius: 'var(--radius-pill)',
+              border: 'none',
+              backgroundColor: 'var(--main-color)',
+              color: 'var(--neon-white)',
+              fontSize: 14,
+              fontWeight: 600,
+              fontFamily: dosisFont,
+            }}
+          >
+            {t('host.bigscreen.open')}
+          </button>
+        )}
+      </div>
     </div>
   );
 };

@@ -8,9 +8,14 @@ import {useT} from '../../i18n';
 import {
   advancePhase,
   createRoom,
+  endRoom,
   getModerationFeed,
   getSnapshot,
+  joinRoom,
   killNote,
+  removeParticipant,
+  renameParticipant,
+  rewindPhase,
 } from '../../lib/api';
 import {subscribeToRoom, type RoomSubscription} from '../../lib/realtime';
 import {
@@ -62,7 +67,9 @@ import {LobbyContent} from './screens/LobbyContent';
 import {BriefingContent} from './screens/BriefingContent';
 import {InGameContent} from './screens/InGameContent';
 import {WrapUpContent} from './screens/WrapUpContent';
-import {consoleCard, dosisFont} from './components/hostStyles';
+import {codeText, consoleCard, dosisFont, rowActionSecondary} from './components/hostStyles';
+import {HostIcon} from './components/HostIcon';
+import {JoinQR} from './components/JoinQR';
 
 type Step =
   | 'hub'
@@ -205,6 +212,7 @@ export const HostConsole: React.FC = () => {
   const [hostSnap, setHostSnap] = useState<HostSnapshot | null>(null);
   const [skewMs, setSkewMs] = useState(0);
   const [liveTimer, setLiveTimer] = useState('');
+  const [copiedLink, setCopiedLink] = useState(false);
   const [briefingIndex, setBriefingIndex] = useState(0);
   const [creatingRoom, setCreatingRoom] = useState(false);
   const [roomActionError, setRoomActionError] = useState<string | null>(null);
@@ -424,6 +432,67 @@ export const HostConsole: React.FC = () => {
     [liveRoomId, refreshLiveRoom, rounds],
   );
 
+  // Reset the console back to the hub and clear the live room. Used by both the
+  // ended-card home button and a successful hard delete.
+  const returnToHub = useCallback(() => {
+    removeActiveRoom(roomCode);
+    refreshActiveRooms();
+    setStep('hub');
+    setNotes(MOCK_MOD_FEED);
+    setRoomCode(MOCK_HOST_ROOM.code);
+    setLiveRoomId(null);
+    setHostRoster(MOCK_HOST_ROSTER);
+    setRosterNames(MOCK_HOST_ROSTER.map((r) => r.name));
+    setBriefingIndex(0);
+    setRevealTriggered(false);
+    setHighlightEnabled(false);
+  }, [roomCode, refreshActiveRooms]);
+
+  // Hard delete (cascade) from any live phase. Real rooms delete server-side and
+  // land on the hub; mock/demo keeps the local "session ended" card.
+  const handleEndRoom = useCallback(async () => {
+    setRoomActionError(null);
+    if (liveRoomId && !isHostAuthMockMode()) {
+      try {
+        await endRoom(liveRoomId);
+      } catch (error) {
+        setRoomActionError(messageOf(error));
+        return;
+      }
+      returnToHub();
+      return;
+    }
+    setStep('ended');
+  }, [liveRoomId, returnToHub]);
+
+  // Rewind one SERVER phase (reveal folds into the wrap-up step, so one call is
+  // one phase back regardless of the visible step). Mirrors advanceRoomPhase.
+  const rewindRoomPhase = useCallback(async () => {
+    setRoomActionError(null);
+    if (!liveRoomId || isHostAuthMockMode()) {
+      const order: Step[] = ['lobby', 'briefing', 'writing', 'wrapup'];
+      const i = order.indexOf(step);
+      const target = i > 0 ? order[i - 1] : step;
+      setStep(target);
+      if (target !== 'wrapup') setRevealTriggered(false);
+      return;
+    }
+
+    try {
+      const next = await rewindPhase(liveRoomId);
+      setMode(toWritingMode(next.mode));
+      setRounds(next.round_count ?? rounds);
+      setMinutes(Math.max(1, Math.round(next.round_seconds / 60)));
+      setStep(roomPhaseToStep[next.phase]);
+      if (roomPhaseToStep[next.phase] !== 'wrapup') setRevealTriggered(false);
+      void refreshLiveRoom().catch(() => {
+        /* background snapshot refresh only */
+      });
+    } catch (error) {
+      setRoomActionError(messageOf(error));
+    }
+  }, [liveRoomId, refreshLiveRoom, rounds, step]);
+
   const removeNote = (id: string) => {
     // Optimistic drop so the feed feels instant; the notes ping reconciles.
     setNotes((prev) => prev.filter((n) => n.id !== id));
@@ -450,23 +519,116 @@ export const HostConsole: React.FC = () => {
     setStep('hub');
   };
 
-  const reopenRoom = (code: string) => {
-    if (code.toUpperCase() !== roomCode) return;
-    const stored = listActiveRooms().find((r) => r.code === code.toUpperCase());
-    if (!stored) return;
-    const screenState = readScreenState(code.toUpperCase());
-    if (typeof screenState?.briefingIndex === 'number') {
-      setBriefingIndex(screenState.briefingIndex);
-    }
-    const phaseMap: Record<ScreenPhase, Step> = {
-      lobby: 'lobby',
-      briefing: 'briefing',
-      writing: 'writing',
-      reveal: 'wrapup',
-      wrapup: 'wrapup',
-    };
-    setStep(phaseMap[stored.phase] ?? 'lobby');
-  };
+  // Open a session from the hub list. Resolves the room by code (the list only
+  // stores the code), loads its live snapshot, and jumps to the current phase.
+  const handleReopenRoom = useCallback(
+    async (code: string) => {
+      setRoomActionError(null);
+      const upper = code.trim().toUpperCase();
+
+      const applyBriefingOverlay = () => {
+        const screenState = readScreenState(upper);
+        if (typeof screenState?.briefingIndex === 'number') {
+          setBriefingIndex(screenState.briefingIndex);
+        }
+      };
+
+      if (isHostAuthMockMode()) {
+        const stored = listActiveRooms().find((r) => r.code === upper);
+        if (!stored) return;
+        setRoomCode(upper);
+        applyBriefingOverlay();
+        setStep(roomPhaseToStep[stored.phase] ?? 'lobby');
+        return;
+      }
+
+      try {
+        const joined = await joinRoom(upper);
+        if (!joined.found) {
+          // The room is gone (ended or swept): drop it from the list.
+          removeActiveRoom(upper);
+          refreshActiveRooms();
+          return;
+        }
+        const snapshot = await getSnapshot(joined.room_id);
+        setLiveRoomId(joined.room_id);
+        setRoomCode(snapshot.code);
+        setMode(toWritingMode(snapshot.mode));
+        setRounds(snapshot.round_count ?? rounds);
+        setMinutes(Math.max(1, Math.round(snapshot.round_seconds / 60)));
+        setRosterNames(snapshot.roster.map((entry) => entry.display_name));
+        setHostRoster(hostRosterFromPublic(snapshot.roster));
+        setSkewMs(new Date(snapshot.server_now).getTime() - Date.now());
+        if (snapshot.role === 'host') setHostSnap(snapshot);
+        setRevealTriggered(snapshot.phase === 'reveal');
+        applyBriefingOverlay();
+        setStep(roomPhaseToStep[snapshot.phase]);
+      } catch (error) {
+        setRoomActionError(messageOf(error));
+      }
+    },
+    [refreshActiveRooms, rounds],
+  );
+
+  // Hard-delete a session straight from the hub list. Resolves the room_id by
+  // code, then end_room (cascade). Removes it from the list either way.
+  const handleDeleteSession = useCallback(
+    async (code: string) => {
+      setRoomActionError(null);
+      const upper = code.trim().toUpperCase();
+      if (isHostAuthMockMode()) {
+        removeActiveRoom(upper);
+        refreshActiveRooms();
+        return;
+      }
+      try {
+        const joined = await joinRoom(upper);
+        if (joined.found) await endRoom(joined.room_id);
+        removeActiveRoom(upper);
+        refreshActiveRooms();
+        if (upper === roomCode) setLiveRoomId(null);
+      } catch (error) {
+        setRoomActionError(messageOf(error));
+      }
+    },
+    [refreshActiveRooms, roomCode],
+  );
+
+  // Lobby roster edits. Live rooms go through the host-only RPCs (roster ping
+  // reconciles); mock/demo edits the local roster in place.
+  const handleRenameParticipant = useCallback(
+    async (id: string, name: string) => {
+      setRoomActionError(null);
+      if (!liveRoomId || isHostAuthMockMode()) {
+        setHostRoster((prev) => prev.map((r) => (r.id === id ? {...r, name} : r)));
+        return;
+      }
+      try {
+        await renameParticipant(liveRoomId, id, name);
+        await refreshLiveRoom();
+      } catch (error) {
+        setRoomActionError(messageOf(error));
+      }
+    },
+    [liveRoomId, refreshLiveRoom],
+  );
+
+  const handleRemoveParticipant = useCallback(
+    async (id: string) => {
+      setRoomActionError(null);
+      if (!liveRoomId || isHostAuthMockMode()) {
+        setHostRoster((prev) => prev.filter((r) => r.id !== id));
+        return;
+      }
+      try {
+        await removeParticipant(liveRoomId, id);
+        await refreshLiveRoom();
+      } catch (error) {
+        setRoomActionError(messageOf(error));
+      }
+    },
+    [liveRoomId, refreshLiveRoom],
+  );
 
   const hubShell = useMemo(
     () => (
@@ -475,11 +637,12 @@ export const HostConsole: React.FC = () => {
           email={hostSession?.email ?? ''}
           activeRooms={activeRooms}
           onStartGame={() => setStep('create')}
-          onReopenRoom={reopenRoom}
+          onReopenRoom={(code) => void handleReopenRoom(code)}
+          onDeleteSession={(code) => void handleDeleteSession(code)}
         />
       </ConsoleShell>
     ),
-    [activeRooms, hostSession?.email],
+    [activeRooms, hostSession?.email, handleReopenRoom, handleDeleteSession],
   );
 
   const presenterState = buildScreenState(step, revealTriggered, highlightEnabled);
@@ -550,19 +713,7 @@ export const HostConsole: React.FC = () => {
           </p>
           <components.Button
             label={t('host.hub.home')}
-            onClick={() => {
-              removeActiveRoom(roomCode);
-              refreshActiveRooms();
-              setStep('hub');
-              setNotes(MOCK_MOD_FEED);
-              setRoomCode(MOCK_HOST_ROOM.code);
-              setLiveRoomId(null);
-              setHostRoster(MOCK_HOST_ROSTER);
-              setRosterNames(MOCK_HOST_ROSTER.map((r) => r.name));
-              setBriefingIndex(0);
-              setRevealTriggered(false);
-              setHighlightEnabled(false);
-            }}
+            onClick={returnToHub}
             colorScheme='secondary'
             containerStyle={{marginTop: 24}}
             style={{textTransform: 'none'}}
@@ -600,19 +751,75 @@ export const HostConsole: React.FC = () => {
   // it is always on screen instead of appended below the fold.
   const advanceButton = (label: string, onClick: () => void) => (
     <components.Button
-      label={label}
+      label={`${label}  →`}
       onClick={onClick}
       colorScheme='primary'
-      containerStyle={{maxWidth: 300, width: '100%'}}
+      containerStyle={{maxWidth: 320, width: '100%'}}
       style={{textTransform: 'none'}}
     />
   );
+
+  const shareJoinLink = async () => {
+    const text = t('host.hub.session.shareText', {code: roomCode});
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({title: t('app.name'), text, url: joinUrl});
+        return;
+      } catch {
+        /* dismissed: fall through to copy */
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(joinUrl);
+      setCopiedLink(true);
+      window.setTimeout(() => setCopiedLink(false), 1800);
+    } catch {
+      /* clipboard blocked */
+    }
+  };
+
+  // Lobby's action bar carries the join details on the left (the QR players scan
+  // is on the big-screen preview to the right), with Start briefing on the right.
+  const lobbyAction = (
+    <div
+      style={{
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 16,
+        flexWrap: 'wrap',
+      }}
+    >
+      <div style={{display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', minWidth: 0}}>
+        <JoinQR value={joinUrl} size={76}>
+          <button
+            type='button'
+            className='clickable'
+            style={rowActionSecondary}
+            onClick={() => void shareJoinLink()}
+          >
+            <HostIcon name='share' />
+            {copiedLink ? t('host.hub.session.copied') : t('host.hub.session.share')}
+          </button>
+        </JoinQR>
+        <div style={{display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0}}>
+          <span style={{...codeText, fontSize: 26}}>{roomCode}</span>
+          <span className='t13' style={{color: 'var(--text-color)', wordBreak: 'break-all'}}>
+            {joinUrl}
+          </span>
+        </div>
+      </div>
+      {advanceButton(t('host.lobby.start'), () => {
+        setBriefingIndex(0);
+        void advanceRoomPhase('briefing');
+      })}
+    </div>
+  );
+
   const primaryAction =
     step === 'lobby'
-      ? advanceButton(t('host.lobby.start'), () => {
-          setBriefingIndex(0);
-          void advanceRoomPhase('briefing');
-        })
+      ? lobbyAction
       : step === 'briefing'
         ? advanceButton(t('host.briefing.advance'), () => void advanceRoomPhase('writing'))
         : step === 'writing'
@@ -629,6 +836,8 @@ export const HostConsole: React.FC = () => {
       primaryAction={primaryAction}
       onHome={() => setStep('hub')}
       onSignOut={() => void handleSignOut()}
+      onEndRoom={() => void handleEndRoom()}
+      onRewind={step === 'lobby' ? undefined : () => void rewindRoomPhase()}
       rightPanel={
         <ProjectorPreviewPanel
           state={presenterState}
@@ -638,10 +847,9 @@ export const HostConsole: React.FC = () => {
     >
       {step === 'lobby' && (
         <LobbyContent
-          code={roomCode}
-          joinUrl={joinUrl}
           roster={hostRoster}
-          onOpenBigScreen={() => openBigScreen(roomCode)}
+          onRename={(id, name) => void handleRenameParticipant(id, name)}
+          onRemove={(id) => void handleRemoveParticipant(id)}
         />
       )}
 
@@ -682,7 +890,7 @@ export const HostConsole: React.FC = () => {
           revealTriggered={revealTriggered}
           onTriggerReveal={() => setRevealTriggered(true)}
           onRemoveNote={removeNote}
-          onEndRoom={() => setStep('ended')}
+          onEndRoom={() => void handleEndRoom()}
           onHighlightToggle={(enabled) => setHighlightEnabled(enabled)}
         />
       )}

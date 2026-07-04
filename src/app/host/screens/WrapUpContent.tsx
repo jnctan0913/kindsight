@@ -15,8 +15,8 @@ import {RevealStatusList} from '../components/RevealStatusList';
 import {HighlightToggle} from '../components/HighlightToggle';
 import {PromptDeck} from '../components/PromptDeck';
 import {ModerationFeed} from '../components/ModerationFeed';
-import {ConfirmDialog} from '../components/ConfirmDialog';
-import {consoleCard, cardHeading, consoleGrid, span, dosisFont} from '../components/hostStyles';
+import {EndRoomDialog} from '../components/EndRoomDialog';
+import {consoleCard, cardHeading, consoleGrid, span} from '../components/hostStyles';
 import {components} from '../../../components';
 
 type Props = {
@@ -49,7 +49,6 @@ export const WrapUpContent: React.FC<Props> = ({
   const t = useT();
   const [highlightOn, setHighlightOn] = useState(false);
   const [endOpen, setEndOpen] = useState(false);
-  const [confirmCode, setConfirmCode] = useState('');
 
   const blockers =
     mode === 'freeSelect'
@@ -107,62 +106,15 @@ export const WrapUpContent: React.FC<Props> = ({
         />
       </div>
 
-      <ConfirmDialog
+      <EndRoomDialog
         open={endOpen}
-        danger
-        title={t('host.wrap.end.cta')}
-        body={t('host.wrap.end.body')}
-        confirmLabel={t('host.wrap.end.cta')}
-        confirmDisabled={confirmCode.trim().toUpperCase() !== code.toUpperCase()}
-        onCancel={() => {
-          setEndOpen(false);
-          setConfirmCode('');
-        }}
+        code={code}
+        onClose={() => setEndOpen(false)}
         onConfirm={() => {
           setEndOpen(false);
-          setConfirmCode('');
           onEndRoom();
         }}
-      >
-        <div style={{marginTop: 16}}>
-          <label
-            htmlFor='end-code'
-            style={{
-              display: 'block',
-              marginBottom: 8,
-              fontSize: 14,
-              fontWeight: 600,
-              color: 'var(--main-color)',
-              fontFamily: dosisFont,
-            }}
-          >
-            {t('host.wrap.end.field', {code})}
-          </label>
-          <input
-            id='end-code'
-            value={confirmCode}
-            onChange={(e) => setConfirmCode(e.target.value.toUpperCase())}
-            autoComplete='off'
-            spellCheck={false}
-            style={{
-              width: '100%',
-              height: 50,
-              padding: '0 16px',
-              borderRadius: 'var(--radius-control)',
-              border: '1px solid var(--border-color)',
-              backgroundColor: 'var(--white-color)',
-              fontSize: 18,
-              letterSpacing: '0.12em',
-              color: 'var(--main-color)',
-              fontFamily:
-                'var(--font-league-spartan), var(--font-noto-sc), sans-serif',
-            }}
-          />
-          <p className='t12' style={{marginTop: 10}}>
-            {t('host.wrap.end.ttl')}
-          </p>
-        </div>
-      </ConfirmDialog>
+      />
     </div>
   );
 };

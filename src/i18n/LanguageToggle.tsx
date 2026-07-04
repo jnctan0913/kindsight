@@ -37,6 +37,7 @@ export const LanguageToggle: React.FC = () => {
             aria-pressed={active}
             className='clickable'
             style={{
+              flex: 1,
               minWidth: 44,
               height: 38,
               padding: '0 14px',

@@ -1,0 +1,41 @@
+/* Interaction states for the hub. Pair with the inline style tokens in
+   hostStyles.ts (className + style compose). Inline styles cannot hold
+   pseudo-classes, so lift + focus live here. */
+
+.card {
+  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 1px 2px rgba(30, 37, 56, 0.05), 0 22px 48px -20px rgba(30, 37, 56, 0.24);
+    border-color: rgba(0, 199, 159, 0.3);
+  }
+}
+
+.row {
+  transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
+
+  &:hover {
+    background-color: #dbedf9;
+    border-color: rgba(0, 199, 159, 0.28);
+    transform: translateY(-1px);
+  }
+}
+
+.rowBtn {
+  transition: transform 140ms ease, filter 140ms ease, box-shadow 140ms ease;
+
+  &:hover {
+    filter: brightness(1.06);
+    box-shadow: 0 6px 16px -8px rgba(30, 37, 56, 0.35);
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
+  }
+}
