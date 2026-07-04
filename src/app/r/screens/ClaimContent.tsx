@@ -1,15 +1,20 @@
 'use client';
 
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 
 import {components} from '@/components';
 import {LanguageToggle, useT} from '@/i18n';
+import {assignAvatars} from '@/lib/avatar';
 import {useRoomStore} from '@/stores/room';
 
 export const ClaimContent: React.FC = () => {
   const t = useT();
   const roster = useRoomStore((s) => s.roster);
   const claim = useRoomStore((s) => s.claim);
+  const avatars = useMemo(
+    () => assignAvatars(roster.map((r) => r.participant_id)),
+    [roster],
+  );
 
   const [selected, setSelected] = useState<string | null>(null);
   const [claiming, setClaiming] = useState(false);
@@ -52,6 +57,7 @@ export const ClaimContent: React.FC = () => {
             <components.RosterChip
               key={entry.participant_id}
               name={entry.display_name}
+              avatarId={entry.claimed ? avatars.get(entry.participant_id) : undefined}
               taken={entry.claimed}
               takenLabel={t('player.claim.taken')}
               selected={selected === entry.participant_id}

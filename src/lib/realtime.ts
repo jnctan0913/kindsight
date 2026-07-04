@@ -67,3 +67,46 @@ export function subscribeToRoom(
     },
   };
 }
+
+// --- Music transport (client-to-client) ---------------------------------------
+// The big screen is the only speaker; the console remote-commands it. Kept on a
+// separate channel so transport chatter never mixes with the DB ping stream.
+// Room-level on/off (music_on) still goes through the DB settings RPC.
+
+export type MusicCommand =
+  | {cmd: 'playpause'}
+  | {cmd: 'skip'}
+  | {cmd: 'mute'; value: boolean}
+  | {cmd: 'volume'; value: number};
+
+export type MusicChannel = {
+  send: (command: MusicCommand) => void;
+  unsubscribe: () => void;
+};
+
+export function subscribeMusic(
+  roomId: string,
+  onCommand?: (command: MusicCommand) => void
+): MusicChannel {
+  const supabase = getSupabase();
+  const channel: RealtimeChannel = supabase.channel(`music:${roomId}`, {
+    config: {broadcast: {self: false}},
+  });
+
+  if (onCommand) {
+    channel.on('broadcast', {event: 'music'}, (message) => {
+      onCommand((message?.payload ?? {}) as MusicCommand);
+    });
+  }
+
+  channel.subscribe();
+
+  return {
+    send: (command) => {
+      void channel.send({type: 'broadcast', event: 'music', payload: command});
+    },
+    unsubscribe: () => {
+      supabase.removeChannel(channel);
+    },
+  };
+}

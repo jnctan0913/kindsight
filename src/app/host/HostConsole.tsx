@@ -16,6 +16,7 @@ import {
   removeParticipant,
   renameParticipant,
   rewindPhase,
+  updateSettings,
 } from '../../lib/api';
 import {subscribeToRoom, type RoomSubscription} from '../../lib/realtime';
 import {
@@ -213,11 +214,13 @@ export const HostConsole: React.FC = () => {
   const [skewMs, setSkewMs] = useState(0);
   const [liveTimer, setLiveTimer] = useState('');
   const [copiedLink, setCopiedLink] = useState(false);
+  const [musicOn, setMusicOn] = useState(true);
   const [briefingIndex, setBriefingIndex] = useState(0);
   const [creatingRoom, setCreatingRoom] = useState(false);
   const [roomActionError, setRoomActionError] = useState<string | null>(null);
   const [revealTriggered, setRevealTriggered] = useState(false);
   const [highlightEnabled, setHighlightEnabled] = useState(false);
+  const [activePrompt, setActivePrompt] = useState<string | null>(null);
   const [showReconnect, setShowReconnect] = useState(false);
   const [activeRooms, setActiveRooms] = useState(listActiveRooms());
   const joinUrl = useMemo(() => joinUrlForRoom(roomCode), [roomCode]);
@@ -255,12 +258,13 @@ export const HostConsole: React.FC = () => {
         revealTriggered: triggered,
         highlightEnabled: highlight,
         highlightNotes: MOCK_HIGHLIGHT_NOTES,
-        activePrompt: null,
+        activePrompt,
         lastJoinedName: hostRoster.find((r) => r.claimed)?.name ?? null,
+        musicOn,
         updatedAt: Date.now(),
       };
     },
-    [briefingIndex, hostRoster, joinUrl, mode, notes.length, roomCode, rounds],
+    [activePrompt, briefingIndex, hostRoster, joinUrl, mode, musicOn, notes.length, roomCode, rounds],
   );
 
   const syncScreen = useCallback(
@@ -284,7 +288,7 @@ export const HostConsole: React.FC = () => {
   useEffect(() => {
     if (step === 'hub' || step === 'create' || step === 'roster' || step === 'ended') return;
     syncScreen(step, revealTriggered, highlightEnabled);
-  }, [step, revealTriggered, highlightEnabled, briefingIndex, syncScreen]);
+  }, [step, revealTriggered, highlightEnabled, briefingIndex, activePrompt, syncScreen]);
 
   useEffect(() => {
     if (step === 'hub' || step === 'create' || step === 'roster' || step === 'ended') return;
@@ -308,6 +312,7 @@ export const HostConsole: React.FC = () => {
     setSkewMs(new Date(snapshot.server_now).getTime() - Date.now());
     if (snapshot.role === 'host') {
       setHostSnap(snapshot);
+      setMusicOn(snapshot.music_on);
       setPaused(Boolean(snapshot.timer_paused_at));
       try {
         setNotes(hostNotesFromModeration(await getModerationFeed(liveRoomId)));
@@ -367,6 +372,7 @@ export const HostConsole: React.FC = () => {
         setBriefingIndex(0);
         setRevealTriggered(false);
         setHighlightEnabled(false);
+        setActivePrompt(null);
 
         if (isHostAuthMockMode()) {
           setRoomCode(MOCK_HOST_ROOM.code);
@@ -446,6 +452,7 @@ export const HostConsole: React.FC = () => {
     setBriefingIndex(0);
     setRevealTriggered(false);
     setHighlightEnabled(false);
+    setActivePrompt(null);
   }, [roomCode, refreshActiveRooms]);
 
   // Hard delete (cascade) from any live phase. Real rooms delete server-side and
@@ -611,6 +618,56 @@ export const HostConsole: React.FC = () => {
       }
     },
     [liveRoomId, refreshLiveRoom],
+  );
+
+  // Room-level music on/off. Optimistic locally, persisted via update_settings
+  // for live rooms (the big screen obeys musicOn from the snapshot / screen state).
+  const toggleMusic = useCallback(() => {
+    const next = !musicOn;
+    setMusicOn(next);
+    if (liveRoomId && !isHostAuthMockMode()) {
+      void updateSettings(liveRoomId, {music_on: next}).catch(() => setMusicOn(!next));
+    }
+  }, [musicOn, liveRoomId]);
+
+  // Briefing frame, opt-in highlights, and the pushed wrap-up prompt are display-
+  // only room fields. Update local state for instant feedback (and the mock/
+  // localStorage preview), then persist for live rooms so the big screen and any
+  // other device converge via the room broadcast + get_bigscreen_state.
+  const handleBriefingIndexChange = useCallback(
+    (i: number) => {
+      setBriefingIndex(i);
+      if (liveRoomId && !isHostAuthMockMode()) {
+        void updateSettings(liveRoomId, {briefing_index: i}).catch((error) =>
+          setRoomActionError(messageOf(error)),
+        );
+      }
+    },
+    [liveRoomId],
+  );
+
+  const handleHighlightToggle = useCallback(
+    (enabled: boolean) => {
+      setHighlightEnabled(enabled);
+      if (liveRoomId && !isHostAuthMockMode()) {
+        void updateSettings(liveRoomId, {highlight_enabled: enabled}).catch((error) =>
+          setRoomActionError(messageOf(error)),
+        );
+      }
+    },
+    [liveRoomId],
+  );
+
+  const handlePromptPush = useCallback(
+    (prompt: string | null) => {
+      setActivePrompt(prompt);
+      if (liveRoomId && !isHostAuthMockMode()) {
+        void updateSettings(liveRoomId, {active_prompt: prompt}).catch((error) =>
+          setRoomActionError(messageOf(error)),
+        );
+      }
+    },
+    [liveRoomId],
   );
 
   const handleRemoveParticipant = useCallback(
@@ -838,6 +895,8 @@ export const HostConsole: React.FC = () => {
       onSignOut={() => void handleSignOut()}
       onEndRoom={() => void handleEndRoom()}
       onRewind={step === 'lobby' ? undefined : () => void rewindRoomPhase()}
+      musicOn={musicOn}
+      onToggleMusic={toggleMusic}
       rightPanel={
         <ProjectorPreviewPanel
           state={presenterState}
@@ -857,7 +916,7 @@ export const HostConsole: React.FC = () => {
         <BriefingContent
           briefingIndex={briefingIndex}
           mode={toScreenMode(mode)}
-          onBriefingIndexChange={setBriefingIndex}
+          onBriefingIndexChange={handleBriefingIndexChange}
         />
       )}
 
@@ -891,7 +950,9 @@ export const HostConsole: React.FC = () => {
           onTriggerReveal={() => setRevealTriggered(true)}
           onRemoveNote={removeNote}
           onEndRoom={() => void handleEndRoom()}
-          onHighlightToggle={(enabled) => setHighlightEnabled(enabled)}
+          onHighlightToggle={handleHighlightToggle}
+          activePrompt={activePrompt}
+          onPromptPush={handlePromptPush}
         />
       )}
 

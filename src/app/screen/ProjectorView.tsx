@@ -6,6 +6,7 @@ import {QRCodeSVG} from 'qrcode.react';
 import {asset} from '../../config';
 import {useT} from '../../i18n';
 import type {StringKey} from '../../i18n';
+import {assignAvatars, avatarSrc} from '../../lib/avatar';
 import {
   BRIEFING_FRAME_CARDS,
   BRIEFING_SLIDE_COUNT,
@@ -78,44 +79,46 @@ export const ProjectorView: React.FC<Props> = ({state, preview = false}) => {
         <div className={styles.briefingVisual}>
           <img src={asset(slide.image)} alt='' aria-hidden='true' />
         </div>
-        <div className={styles.briefingCopy}>
-          <p className={styles.eyebrow}>
-            {t('screen.briefing.frame', {
-              n: briefingIndex + 1,
-              total: BRIEFING_SLIDE_COUNT,
-            })}
-          </p>
-          <p className={styles.headline}>{t(slide.title)}</p>
-          <p className={styles.subcopy}>{t(slide.body)}</p>
-        </div>
-
-        {slide.id === 'write' && (
-          <div className={styles.briefingFrames}>
-            {BRIEFING_FRAME_CARDS.map((frame) => (
-              <div key={frame.frame} className={styles.frameCard}>
-                <p className={styles.frameLabel}>{t(frame.label)}</p>
-                <p className={styles.frameStem}>{t(frame.stem)}</p>
-                <p className={styles.frameExample}>{t(frame.good)}</p>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {slide.id === 'targets' && (
-          <div className={styles.briefingNote}>
-            <p>
-              {state.mode === 'free_select'
-                ? t('host.preview.mode.b')
-                : t('host.preview.mode.a')}
+        <div className={styles.briefingRight}>
+          <div className={styles.briefingCopy}>
+            <p className={styles.eyebrow}>
+              {t('screen.briefing.frame', {
+                n: briefingIndex + 1,
+                total: BRIEFING_SLIDE_COUNT,
+              })}
             </p>
+            <p className={styles.headline}>{t(slide.title)}</p>
+            <p className={styles.subcopy}>{t(slide.body)}</p>
           </div>
-        )}
 
-        {slide.id === 'reveal' && (
-          <div className={styles.briefingNote}>
-            <p>{t('player.briefing.anonymity')}</p>
-          </div>
-        )}
+          {slide.id === 'write' && (
+            <div className={styles.briefingFrames}>
+              {BRIEFING_FRAME_CARDS.map((frame) => (
+                <div key={frame.frame} className={styles.frameCard}>
+                  <p className={styles.frameLabel}>{t(frame.label)}</p>
+                  <p className={styles.frameStem}>{t(frame.stem)}</p>
+                  <p className={styles.frameExample}>{t(frame.good)}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {slide.id === 'targets' && (
+            <div className={styles.briefingNote}>
+              <p>
+                {state.mode === 'free_select'
+                  ? t('host.preview.mode.b')
+                  : t('host.preview.mode.a')}
+              </p>
+            </div>
+          )}
+
+          {slide.id === 'reveal' && (
+            <div className={styles.briefingNote}>
+              <p>{t('player.briefing.anonymity')}</p>
+            </div>
+          )}
+        </div>
       </div>
     );
   }
@@ -145,6 +148,8 @@ export const ProjectorView: React.FC<Props> = ({state, preview = false}) => {
   }
 
   const dots = Array.from({length: state.totalCount}, (_, i) => i < state.claimedCount);
+  const roster = state.roster ?? null;
+  const rosterAvatars = roster ? assignAvatars(roster.map((r) => r.id)) : null;
 
   return (
     <div className={`${shellClass} ${styles.lobbyShell}`}>
@@ -196,14 +201,36 @@ export const ProjectorView: React.FC<Props> = ({state, preview = false}) => {
           total: state.totalCount,
         })}
       </p>
-      <div className={styles.dots}>
-        {dots.map((filled, i) => (
-          <span
-            key={i}
-            className={`${styles.dot} ${filled ? styles.dotFilled : ''}`}
-          />
-        ))}
-      </div>
+      {roster && rosterAvatars ? (
+        <div className={styles.avatarWall}>
+          {roster.map((r) =>
+            r.claimed ? (
+              <img
+                key={r.id}
+                className={styles.avatarTile}
+                src={avatarSrc(rosterAvatars.get(r.id) ?? 2)}
+                alt=''
+                aria-hidden='true'
+              />
+            ) : (
+              <span
+                key={r.id}
+                className={`${styles.avatarTile} ${styles.avatarGhost}`}
+                aria-hidden='true'
+              />
+            ),
+          )}
+        </div>
+      ) : (
+        <div className={styles.dots}>
+          {dots.map((filled, i) => (
+            <span
+              key={i}
+              className={`${styles.dot} ${filled ? styles.dotFilled : ''}`}
+            />
+          ))}
+        </div>
+      )}
       {state.lastJoinedName && (
         <p className={styles.ticker}>
           {t('screen.lobby.ticker', {name: state.lastJoinedName})}

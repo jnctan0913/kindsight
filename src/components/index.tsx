@@ -5,6 +5,7 @@ import {Background} from './Background';
 import {InputField} from './InputField';
 import {BlockHeading} from './BlockHeading';
 import {RosterChip} from './RosterChip';
+import {Avatar} from './Avatar';
 import {FrameTag} from './FrameTag';
 import {Modal} from './Modal';
 
@@ -16,6 +17,7 @@ export const components = {
   InputField,
   BlockHeading,
   RosterChip,
+  Avatar,
   FrameTag,
   Modal,
 };

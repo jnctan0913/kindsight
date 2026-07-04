@@ -8,7 +8,13 @@ export type IconName =
   | 'delete'
   | 'plus'
   | 'home'
-  | 'signout';
+  | 'signout'
+  | 'play'
+  | 'pause'
+  | 'skip'
+  | 'music'
+  | 'volume'
+  | 'mute';
 
 // Line icons. `color` sets the stroke explicitly (default currentColor). Pass an
 // explicit color for icons on dark backgrounds: the svg does not reliably inherit
@@ -95,6 +101,50 @@ export const HostIcon: React.FC<{name: IconName; size?: number; color?: string}>
           <path d='M15 4h3a2 2 0 012 2v12a2 2 0 01-2 2h-3' />
           <path d='M10 17l-5-5 5-5' />
           <path d='M5 12h11' />
+        </svg>
+      );
+    case 'play':
+      return (
+        <svg {...common}>
+          <polygon points='7 5 19 12 7 19 7 5' fill={color} stroke='none' />
+        </svg>
+      );
+    case 'pause':
+      return (
+        <svg {...common}>
+          <path d='M9 5v14' />
+          <path d='M15 5v14' />
+        </svg>
+      );
+    case 'skip':
+      return (
+        <svg {...common}>
+          <polygon points='6 5 15 12 6 19 6 5' fill={color} stroke='none' />
+          <path d='M18 5v14' />
+        </svg>
+      );
+    case 'music':
+      return (
+        <svg {...common}>
+          <path d='M9 18V6l11-2v10' />
+          <circle cx='6' cy='18' r='3' fill={color} stroke='none' />
+          <circle cx='17' cy='16' r='3' fill={color} stroke='none' />
+        </svg>
+      );
+    case 'volume':
+      return (
+        <svg {...common}>
+          <path d='M4 9h4l5-4v14l-5-4H4z' />
+          <path d='M16 8a5 5 0 010 8' />
+          <path d='M19 5a9 9 0 010 14' />
+        </svg>
+      );
+    case 'mute':
+      return (
+        <svg {...common}>
+          <path d='M4 9h4l5-4v14l-5-4H4z' />
+          <path d='M16 9l6 6' />
+          <path d='M22 9l-6 6' />
         </svg>
       );
   }

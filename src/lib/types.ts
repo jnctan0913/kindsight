@@ -19,6 +19,8 @@ export type RoomPublic = {
   timer_paused_at: string | null;
   grace_until: string | null;
   highlight_enabled: boolean;
+  briefing_index: number;
+  active_prompt: string | null;
   music_mood: string | null;
   music_on: boolean;
   seq: number;

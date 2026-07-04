@@ -52,9 +52,10 @@ function mapState(bs: FoundState, skewMs: number): ScreenRoomState {
     code: bs.code,
     mode: bs.mode,
     phase: bs.phase,
-    briefingIndex: 0, // live briefing-frame sync is a later screen_state extension
+    briefingIndex: bs.briefing_index,
     claimedCount: bs.counts.claimed,
     totalCount: bs.counts.roster,
+    roster: bs.roster.map((r) => ({id: r.participant_id, claimed: r.claimed})),
     joinUrl: joinUrlForCode(bs.code),
     currentRound: bs.current_round,
     totalRounds: bs.round_count ?? 0,
@@ -63,8 +64,9 @@ function mapState(bs: FoundState, skewMs: number): ScreenRoomState {
     revealTriggered: bs.phase === 'reveal' || bs.phase === 'wrapup',
     highlightEnabled: bs.highlight_enabled,
     highlightNotes: bs.highlight.map((h) => ({frame: h.frame, content: h.content})),
-    activePrompt: null, // prompt deck rides a later screen ping
+    activePrompt: bs.active_prompt,
     lastJoinedName: null,
+    musicOn: bs.music_on,
     updatedAt: Date.now(),
   };
 }

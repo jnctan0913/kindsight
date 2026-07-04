@@ -1,10 +1,11 @@
 'use client';
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 
 import {components} from '@/components';
 import {LanguageToggle, useT} from '@/i18n';
 import type {StringKey} from '@/i18n';
+import {assignAvatars} from '@/lib/avatar';
 import {useRoomStore} from '@/stores/room';
 import type {NoteFrame, TargetNote} from '@/lib/types';
 
@@ -53,6 +54,11 @@ export const WriteContent: React.FC = () => {
   const [priorOpen, setPriorOpen] = useState(false);
   const [priorNotes, setPriorNotes] = useState<TargetNote[] | null>(null);
   const [priorLoading, setPriorLoading] = useState(false);
+
+  const avatars = useMemo(
+    () => assignAvatars(roster.map((r) => r.participant_id)),
+    [roster],
+  );
 
   const isModeA = mode === 'round_robin';
   const assignment = me?.assignment ?? null;
@@ -258,6 +264,7 @@ export const WriteContent: React.FC = () => {
                   <components.RosterChip
                     key={entry.participant_id}
                     name={entry.display_name}
+                    avatarId={avatars.get(entry.participant_id)}
                     taken={written}
                     takenLabel={t('player.write.written')}
                     selected={selectedTarget === entry.participant_id}

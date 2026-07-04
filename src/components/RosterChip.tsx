@@ -2,8 +2,11 @@
 
 import React from 'react';
 
+import {Avatar} from './Avatar';
+
 type Props = {
   name: string;
+  avatarId?: number | null;
   taken?: boolean;
   takenLabel?: string;
   selected?: boolean;
@@ -12,6 +15,7 @@ type Props = {
 
 export const RosterChip: React.FC<Props> = ({
   name,
+  avatarId,
   taken,
   takenLabel,
   selected,
@@ -25,7 +29,7 @@ export const RosterChip: React.FC<Props> = ({
       className={taken ? undefined : 'clickable'}
       style={{
         minHeight: 48,
-        padding: '0 18px',
+        padding: avatarId ? '0 18px 0 8px' : '0 18px',
         display: 'inline-flex',
         alignItems: 'center',
         gap: 8,
@@ -42,6 +46,7 @@ export const RosterChip: React.FC<Props> = ({
         transition: 'border-color 150ms ease-in-out',
       }}
     >
+      {avatarId ? <Avatar avatarId={avatarId} size='sm' /> : null}
       <span>{name}</span>
       {taken && takenLabel && (
         <span

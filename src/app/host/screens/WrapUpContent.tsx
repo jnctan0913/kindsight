@@ -31,6 +31,8 @@ type Props = {
   onRemoveNote: (id: string) => void;
   onEndRoom: () => void;
   onHighlightToggle?: (enabled: boolean) => void;
+  activePrompt?: string | null;
+  onPromptPush?: (prompt: string | null) => void;
 };
 
 export const WrapUpContent: React.FC<Props> = ({
@@ -45,6 +47,8 @@ export const WrapUpContent: React.FC<Props> = ({
   onRemoveNote,
   onEndRoom,
   onHighlightToggle,
+  activePrompt,
+  onPromptPush,
 }) => {
   const t = useT();
   const [highlightOn, setHighlightOn] = useState(false);
@@ -75,7 +79,7 @@ export const WrapUpContent: React.FC<Props> = ({
             });
           }}
         />
-        <PromptDeck />
+        <PromptDeck activePrompt={activePrompt} onPush={onPromptPush} />
       </div>
 
       <div style={span(5)}>

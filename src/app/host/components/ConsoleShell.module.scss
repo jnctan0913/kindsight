@@ -113,8 +113,19 @@
   font-family: var(--font-dosis), var(--font-noto-sc), sans-serif;
 }
 
-.footer {
+// Bottom cluster: musicDock (game only) carries margin-top:auto to push it and
+// the footer down; the hub has no musicDock, so the footer takes the auto (set
+// inline on isHub). Keeps session controls at top, utilities at bottom.
+.musicDock {
   margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.footer {
   display: flex;
   flex-direction: column;
   gap: 12px;

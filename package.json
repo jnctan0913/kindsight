@@ -3,7 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "gen:music": "node tools/gen-music-manifest.mjs",
+    "predev": "node tools/gen-music-manifest.mjs",
     "dev": "NEXT_DIST_DIR=.next-dev next dev --turbopack",
+    "prebuild": "node tools/gen-music-manifest.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"

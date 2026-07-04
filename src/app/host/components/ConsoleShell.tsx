@@ -8,6 +8,7 @@ import type {StringKey} from '../../../i18n';
 import {PhaseStepper, type HostPhase} from './PhaseStepper';
 import {EndRoomDialog} from './EndRoomDialog';
 import {HostIcon} from './HostIcon';
+import {MusicDock} from './MusicDock';
 import styles from './ConsoleShell.module.scss';
 
 type BaseProps = {
@@ -30,6 +31,9 @@ type GameProps = BaseProps & {
   onEndRoom?: () => void;
   // Rewind one server phase. Omit to hide (e.g. at lobby, nothing to go back to).
   onRewind?: () => void;
+  // Room music on/off (big screen is the speaker; sidebar is the remote).
+  musicOn?: boolean;
+  onToggleMusic?: () => void;
 };
 
 type HubProps = BaseProps & {
@@ -121,8 +125,18 @@ export const ConsoleShell: React.FC<Props> = (props) => {
           </div>
         )}
 
+        {/* Music remote (big screen is the speaker). Sits above the footer as
+            the top of the bottom cluster. */}
+        {!isHub && (
+          <MusicDock
+            code={props.code}
+            musicOn={props.musicOn ?? true}
+            onToggleMusic={props.onToggleMusic ?? (() => {})}
+          />
+        )}
+
         {/* Standard controls (account, language) stay pinned at the bottom. */}
-        <div className={styles.footer}>
+        <div className={styles.footer} style={isHub ? {marginTop: 'auto'} : undefined}>
           {isHub && props.onHome && (
             <button
               type='button'

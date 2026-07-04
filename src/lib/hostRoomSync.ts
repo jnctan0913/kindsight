@@ -19,6 +19,9 @@ export type ScreenRoomState = {
   briefingIndex: number;
   claimedCount: number;
   totalCount: number;
+  // Present on the live Supabase path; absent on the localStorage/demo path,
+  // where the projector falls back to anonymous progress dots.
+  roster?: {id: string; claimed: boolean}[];
   joinUrl: string;
   currentRound: number;
   totalRounds: number;
@@ -29,6 +32,9 @@ export type ScreenRoomState = {
   highlightNotes: HighlightNote[];
   activePrompt: string | null;
   lastJoinedName: string | null;
+  // Room-level music toggle (host on/off). Track choice, volume, and mute are
+  // device-local on the big screen; only this on/off syncs.
+  musicOn: boolean;
   updatedAt: number;
 };
 

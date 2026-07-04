@@ -9,6 +9,8 @@ import {MOCK_HOST_ROOM} from '../../mock/room';
 import styles from './BigScreen.module.scss';
 import {ProjectorView} from './ProjectorView';
 import {useLiveScreenState} from './useLiveScreen';
+import {useRoomMusic} from './useRoomMusic';
+import {MusicControls} from './MusicControls';
 
 function defaultState(code: string): ScreenRoomState {
   return {
@@ -28,6 +30,7 @@ function defaultState(code: string): ScreenRoomState {
     highlightNotes: [],
     activePrompt: null,
     lastJoinedName: null,
+    musicOn: true,
     updatedAt: Date.now(),
   };
 }
@@ -65,6 +68,8 @@ export const BigScreen: React.FC = () => {
     return synced ?? defaultState(code);
   }, [code, live, synced]);
 
+  const music = useRoomMusic(state);
+
   if (!code) {
     return (
       <div className={styles.shell}>
@@ -82,5 +87,14 @@ export const BigScreen: React.FC = () => {
     );
   }
 
-  return <ProjectorView state={state} />;
+  const revealing = state.phase === 'reveal' || state.revealTriggered;
+  return (
+    <div
+      style={{position: 'relative', minHeight: '100dvh'}}
+      onClick={music.showControls && !music.armed ? music.arm : undefined}
+    >
+      <ProjectorView state={state} />
+      <MusicControls music={music} musicOn={state.musicOn} revealing={revealing} />
+    </div>
+  );
 };

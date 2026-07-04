@@ -1,6 +1,6 @@
 'use client';
 
-import React, {useState} from 'react';
+import React from 'react';
 
 import {useT} from '../../../i18n';
 import type {StringKey} from '../../../i18n';
@@ -8,16 +8,21 @@ import {consoleCard, cardHeading, dosisFont} from './hostStyles';
 
 const prompts: StringKey[] = ['host.prompt.1', 'host.prompt.2', 'host.prompt.3'];
 
-export const PromptDeck: React.FC = () => {
+type Props = {
+  activePrompt?: string | null;
+  onPush?: (prompt: string | null) => void;
+};
+
+export const PromptDeck: React.FC<Props> = ({activePrompt, onPush}) => {
   const t = useT();
-  const [active, setActive] = useState<number | null>(null);
 
   return (
     <div style={consoleCard}>
       <span style={cardHeading}>{t('host.wrap.prompts.title')}</span>
       <ul style={{marginTop: 14, display: 'flex', flexDirection: 'column', gap: 10}}>
-        {prompts.map((key, i) => {
-          const pushed = active === i;
+        {prompts.map((key) => {
+          const label = t(key);
+          const pushed = activePrompt === label;
           return (
             <li
               key={key}
@@ -39,7 +44,7 @@ export const PromptDeck: React.FC = () => {
               </span>
               <button
                 className='clickable'
-                onClick={() => setActive(i)}
+                onClick={() => onPush?.(pushed ? null : label)}
                 style={{
                   flexShrink: 0,
                   padding: '6px 12px',
