@@ -37,7 +37,7 @@ import {
   type WritingMode,
 } from '../../mock/room';
 import type {RoomPhase, RosterEntry as PublicRosterEntry} from '../../lib/types';
-import {ConsoleShell, type ConsoleNav} from './components/ConsoleShell';
+import {ConsoleShell} from './components/ConsoleShell';
 import {type HostPhase} from './components/PhaseStepper';
 import {Toast} from './components/Toast';
 import {ProjectorPreviewPanel} from './components/ProjectorPreviewPanel';
@@ -142,7 +142,6 @@ export const HostConsole: React.FC = () => {
   const [roomCode, setRoomCode] = useState(MOCK_HOST_ROOM.code);
   const [liveRoomId, setLiveRoomId] = useState<string | null>(null);
 
-  const [nav, setNav] = useState<ConsoleNav>('room');
   const [paused, setPaused] = useState(false);
   const [graceRunning, setGraceRunning] = useState(false);
   const [notes, setNotes] = useState<HostNote[]>(MOCK_MOD_FEED);
@@ -374,12 +373,7 @@ export const HostConsole: React.FC = () => {
 
   const hubShell = useMemo(
     () => (
-      <ConsoleShell
-        variant='hub'
-        activeNav={nav}
-        onNav={setNav}
-        onSignOut={() => void handleSignOut()}
-      >
+      <ConsoleShell variant='hub' onSignOut={() => void handleSignOut()}>
         <ConsoleHubScreen
           email={hostSession?.email ?? ''}
           activeRooms={activeRooms}
@@ -388,7 +382,7 @@ export const HostConsole: React.FC = () => {
         />
       </ConsoleShell>
     ),
-    [activeRooms, hostSession?.email, nav],
+    [activeRooms, hostSession?.email],
   );
 
   const presenterState = buildScreenState(step, revealTriggered, highlightEnabled);
@@ -490,8 +484,6 @@ export const HostConsole: React.FC = () => {
     <ConsoleShell
       code={roomCode}
       phase={phase}
-      activeNav={nav}
-      onNav={setNav}
       playerCount={rosterNames.length}
       noteCount={notes.length}
       onHome={() => setStep('hub')}

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 
 import {asset} from '../../../config';
 import {LanguageToggle, useT} from '../../../i18n';
@@ -8,13 +8,10 @@ import type {StringKey} from '../../../i18n';
 import {PhaseStepper, type HostPhase} from './PhaseStepper';
 import styles from './ConsoleShell.module.scss';
 
-export type ConsoleNav = 'room' | 'roster' | 'moderation' | 'preview';
-
 type BaseProps = {
-  activeNav: ConsoleNav;
-  onNav: (nav: ConsoleNav) => void;
   children: React.ReactNode;
   rightPanel?: React.ReactNode;
+  primaryAction?: React.ReactNode;
   onSignOut?: () => void;
   onHome?: () => void;
 };
@@ -37,16 +34,18 @@ type HubProps = BaseProps & {
 
 type Props = GameProps | HubProps;
 
-const navItems: {id: ConsoleNav; labelKey: StringKey}[] = [
-  {id: 'room', labelKey: 'host.nav.room'},
-  {id: 'roster', labelKey: 'host.roster.title'},
-  {id: 'moderation', labelKey: 'host.mod.title'},
-  {id: 'preview', labelKey: 'host.preview.title'},
-];
-
 export const ConsoleShell: React.FC<Props> = (props) => {
   const t = useT();
   const isHub = props.variant === 'hub';
+  const hasPreview = Boolean(props.rightPanel);
+
+  // The projector preview is a togglable rail, default open only on wide
+  // desktops so it never starves the content column on smaller screens. Init
+  // false (SSR-safe) and open on mount when there's room.
+  const [previewOpen, setPreviewOpen] = useState(false);
+  useEffect(() => {
+    if (hasPreview) setPreviewOpen(window.innerWidth >= 1280);
+  }, [hasPreview]);
 
   return (
     <div className={styles.shell}>
@@ -57,40 +56,18 @@ export const ConsoleShell: React.FC<Props> = (props) => {
             alt='Kindsight'
             className={styles.logo}
           />
-          <div>
-            {isHub ? (
-              <>
-                <p className={styles.code}>{t('host.hub.sidebar')}</p>
-                <p className={styles.phase}>{t('host.hub.sidebarHint')}</p>
-              </>
-            ) : (
-              <>
-                <p className={styles.code}>{props.code}</p>
-                <p className={styles.phase}>{t(`phase.${props.phase}` as StringKey)}</p>
-              </>
-            )}
-          </div>
+          {isHub ? (
+            <div className={styles.roomChip}>
+              <p className={styles.code}>{t('host.hub.sidebar')}</p>
+              <p className={styles.phase}>{t('host.hub.sidebarHint')}</p>
+            </div>
+          ) : (
+            <div className={styles.roomChip}>
+              <span className={styles.roomLabel}>{t('host.nav.room')}</span>
+              <p className={styles.code}>{props.code}</p>
+            </div>
+          )}
         </div>
-
-        {!isHub && (
-          <nav className={styles.nav}>
-            {navItems.map((item) => {
-              const active = props.activeNav === item.id;
-              return (
-                <button
-                  key={item.id}
-                  className={`clickable ${styles.navItem} ${
-                    active ? styles.navItemActive : ''
-                  }`}
-                  onClick={() => props.onNav(item.id)}
-                  aria-current={active ? 'page' : undefined}
-                >
-                  {t(item.labelKey)}
-                </button>
-              );
-            })}
-          </nav>
-        )}
 
         <div className={styles.footer}>
           {!isHub && (
@@ -103,16 +80,7 @@ export const ConsoleShell: React.FC<Props> = (props) => {
               </span>
             </div>
           )}
-          {isHub && props.onHome && (
-            <button
-              type='button'
-              className={`clickable ${styles.navItem}`}
-              onClick={props.onHome}
-            >
-              {t('host.hub.home')}
-            </button>
-          )}
-          {!isHub && props.onHome && (
+          {props.onHome && (
             <button
               type='button'
               className={`clickable ${styles.navItem}`}
@@ -136,16 +104,39 @@ export const ConsoleShell: React.FC<Props> = (props) => {
 
       <div className={styles.mainCol}>
         {!isHub && (
-          <div className={styles.stepperBar}>
+          <div className={styles.headerBar}>
             <PhaseStepper current={props.phase} />
+            {hasPreview && (
+              <button
+                type='button'
+                className={`clickable ${styles.previewToggle} ${
+                  previewOpen ? styles.previewToggleOn : ''
+                }`}
+                aria-pressed={previewOpen}
+                onClick={() => setPreviewOpen((v) => !v)}
+              >
+                {t('host.preview.title' as StringKey)}
+              </button>
+            )}
           </div>
         )}
-        <main className={props.rightPanel ? styles.contentWithPanel : styles.content}>
-          <div className={styles.primaryContent}>{props.children}</div>
-          {props.rightPanel && (
-            <aside className={styles.rightPanel}>{props.rightPanel}</aside>
-          )}
-        </main>
+
+        <div className={styles.scrollArea}>
+          <main
+            className={
+              hasPreview && previewOpen ? styles.contentWithPanel : styles.content
+            }
+          >
+            <div className={styles.primaryContent}>{props.children}</div>
+            {hasPreview && previewOpen && (
+              <aside className={styles.rightPanel}>{props.rightPanel}</aside>
+            )}
+          </main>
+        </div>
+
+        {props.primaryAction && (
+          <div className={styles.actionBar}>{props.primaryAction}</div>
+        )}
       </div>
     </div>
   );

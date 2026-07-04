@@ -8,7 +8,9 @@ import {dosisFont} from './hostStyles';
 
 export type HostPhase = 'lobby' | 'briefing' | 'writing' | 'reveal' | 'wrapup';
 
-const order: HostPhase[] = ['lobby', 'briefing', 'writing', 'reveal', 'wrapup'];
+// The console step machine never rests on 'reveal' (it is folded into wrap-up),
+// so the spine shows the four real steps to keep "where am I" unambiguous.
+const order: HostPhase[] = ['lobby', 'briefing', 'writing', 'wrapup'];
 
 const labels: Record<HostPhase, StringKey> = {
   lobby: 'phase.lobby',
