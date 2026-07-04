@@ -40,14 +40,14 @@ export default function RootLayout({
         />
         <meta
           name='theme-color'
-          content='#1E2538'
+          content='#F5FAFB'
         />
       </head>
 
       <body
         id='app'
         className={`${dosis.variable} ${leagueSpartan.variable} ${notoSansSC.variable}`}
-        style={{backgroundColor: 'var(--night-surface)'}}
+        style={{backgroundColor: 'var(--neon-white)'}}
       >
         {children}
       </body>

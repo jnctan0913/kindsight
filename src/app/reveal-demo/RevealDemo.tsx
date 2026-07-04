@@ -1,6 +1,6 @@
 'use client';
 
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useSearchParams} from 'next/navigation';
 
 import styles from './reveal.module.scss';
@@ -10,7 +10,7 @@ import {NoteCard} from './NoteCard';
 import {HoldToRevealButton} from './HoldToRevealButton';
 import {asset} from '../../config';
 
-type Stage = 'locked' | 'unlock' | 'notes' | 'wall';
+type Stage = 'locked' | 'unlock' | 'wall';
 
 const DEFAULT_BREATH = 3200;
 const SILHOUETTE_START = 5;
@@ -24,17 +24,12 @@ export const RevealDemo: React.FC = () => {
   });
   const [stage, setStage] = useState<Stage>('locked');
   const [silCount, setSilCount] = useState(SILHOUETTE_START);
-  const [noteIndex, setNoteIndex] = useState(0);
-  const [exiting, setExiting] = useState(false);
   const [shared, setShared] = useState<boolean[]>(() =>
     demoNotes.map(() => false),
   );
   const [soundOn, setSoundOn] = useState(true);
   const [reducedMotion, setReducedMotion] = useState(false);
-  const [noteAnnouncement, setNoteAnnouncement] = useState('');
   const [toast, setToast] = useState('');
-
-  const noteCardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -55,18 +50,6 @@ export const RevealDemo: React.FC = () => {
   }, [stage, silCount]);
 
   useEffect(() => {
-    if (stage !== 'notes') return;
-    const note = demoNotes[noteIndex];
-    setNoteAnnouncement(
-      t('reveal.note.aria', {
-        frame: t(`frame.${note.frame}.label`),
-        text: note.content,
-      }),
-    );
-    noteCardRef.current?.focus({preventScroll: true});
-  }, [stage, noteIndex]);
-
-  useEffect(() => {
     if (!toast) return;
     const timer = window.setTimeout(() => setToast(''), 4000);
     return () => window.clearTimeout(timer);
@@ -75,30 +58,12 @@ export const RevealDemo: React.FC = () => {
   const restart = () => {
     setStage('locked');
     setSilCount(SILHOUETTE_START);
-    setNoteIndex(0);
-    setExiting(false);
     setShared(demoNotes.map(() => false));
     setToast('');
   };
 
-  const advanceNote = () => {
-    if (exiting) return;
-    setExiting(true);
-    window.setTimeout(
-      () => {
-        setExiting(false);
-        if (noteIndex + 1 < demoNotes.length) {
-          setNoteIndex(noteIndex + 1);
-        } else {
-          setStage('wall');
-        }
-      },
-      reducedMotion ? 150 : 250,
-    );
-  };
-
   const renderLocked = () => (
-    <div key='locked' className={`${styles.stage} ${styles.night}`}>
+    <div key='locked' className={`${styles.stage} ${styles.ritual}`}>
       <img
         src={asset('/assets/kindsight/kindsight-mascot-only.png')}
         alt='Kindsight mascot'
@@ -129,7 +94,7 @@ export const RevealDemo: React.FC = () => {
           height='20'
           viewBox='0 0 24 24'
           fill='none'
-          stroke='rgba(245, 250, 251, 0.7)'
+          stroke='rgba(30, 37, 56, 0.6)'
           strokeWidth='2'
           strokeLinecap='round'
           strokeLinejoin='round'
@@ -146,7 +111,7 @@ export const RevealDemo: React.FC = () => {
   );
 
   const renderUnlock = () => (
-    <div key='unlock' className={`${styles.stage} ${styles.night}`}>
+    <div key='unlock' className={`${styles.stage} ${styles.ritual}`}>
       <h2 style={{marginTop: 64, textAlign: 'center', maxWidth: 280}}>
         {t('reveal.invite.title')}
       </h2>
@@ -155,7 +120,7 @@ export const RevealDemo: React.FC = () => {
         breathMs={breathMs}
         reducedMotion={reducedMotion}
         soundOn={soundOn}
-        onComplete={() => setStage('notes')}
+        onComplete={() => setStage('wall')}
       />
 
       <button
@@ -167,66 +132,6 @@ export const RevealDemo: React.FC = () => {
       </button>
     </div>
   );
-
-  const renderNotes = () => {
-    const note = demoNotes[noteIndex];
-    const isLast = noteIndex === demoNotes.length - 1;
-    return (
-      <div key='notes' className={`${styles.stage} ${styles.night}`}>
-        <div className={styles.noteStage}>
-          <span className={styles.noteCounter}>
-            {t('reveal.note.counter', {
-              n: noteIndex + 1,
-              count: demoNotes.length,
-            })}
-          </span>
-
-          <NoteCard
-            key={note.id}
-            note={note}
-            variant='reveal'
-            className={exiting ? styles.noteExit : styles.noteEnter}
-            cardRef={noteCardRef}
-          />
-
-          <div key={`optin-${note.id}`} className={styles.optinRow}>
-            <p style={{color: 'var(--neon-white)'}}>
-              {t('reveal.optin.question')}
-            </p>
-            <div className={styles.optinButtons} role='group'>
-              <button
-                className={`${styles.optinPill} ${!shared[noteIndex] ? styles.optinPillActive : ''}`}
-                onClick={() =>
-                  setShared((s) => s.map((v, i) => (i === noteIndex ? false : v)))
-                }
-              >
-                {t('reveal.optin.no')}
-              </button>
-              <button
-                className={`${styles.optinPill} ${shared[noteIndex] ? styles.optinPillActive : ''}`}
-                aria-label={t('reveal.optin.aria')}
-                onClick={() =>
-                  setShared((s) => s.map((v, i) => (i === noteIndex ? true : v)))
-                }
-              >
-                {shared[noteIndex]
-                  ? t('reveal.optin.shared')
-                  : t('reveal.optin.share')}
-              </button>
-            </div>
-          </div>
-
-          <button className={styles.primaryButton} onClick={advanceNote}>
-            {isLast ? t('reveal.last') : t('reveal.next')}
-          </button>
-        </div>
-
-        <span className={styles.srOnly} aria-live='polite'>
-          {noteAnnouncement}
-        </span>
-      </div>
-    );
-  };
 
   const renderWall = () => (
     <div
@@ -244,8 +149,42 @@ export const RevealDemo: React.FC = () => {
       <p className={styles.wallHint}>{t('wall.optin.hint')}</p>
 
       <div className={styles.wallGrid}>
-        {demoNotes.map((note) => (
-          <NoteCard key={note.id} note={note} variant='wall' />
+        {demoNotes.map((note, i) => (
+          <div
+            key={note.id}
+            className={reducedMotion ? undefined : styles.noteEnter}
+            style={
+              reducedMotion ? undefined : {animationDelay: `${i * 140}ms`}
+            }
+          >
+            <NoteCard note={note} variant='wall' />
+            <div className={styles.wallOptinRow}>
+              <span className={styles.wallOptinLabel}>
+                {t('reveal.optin.question')}
+              </span>
+              <div className={styles.optinButtons} role='group'>
+                <button
+                  className={`${styles.optinPill} ${styles.optinPillSmall} ${!shared[i] ? styles.optinPillActive : ''}`}
+                  onClick={() =>
+                    setShared((s) => s.map((v, j) => (j === i ? false : v)))
+                  }
+                >
+                  {t('reveal.optin.no')}
+                </button>
+                <button
+                  className={`${styles.optinPill} ${styles.optinPillSmall} ${shared[i] ? styles.optinPillActive : ''}`}
+                  aria-label={t('reveal.optin.aria')}
+                  onClick={() =>
+                    setShared((s) => s.map((v, j) => (j === i ? true : v)))
+                  }
+                >
+                  {shared[i]
+                    ? t('reveal.optin.shared')
+                    : t('reveal.optin.share')}
+                </button>
+              </div>
+            </div>
+          </div>
         ))}
       </div>
 
@@ -273,7 +212,6 @@ export const RevealDemo: React.FC = () => {
     <>
       {stage === 'locked' && renderLocked()}
       {stage === 'unlock' && renderUnlock()}
-      {stage === 'notes' && renderNotes()}
       {stage === 'wall' && renderWall()}
 
       <div className={styles.devRow}>

@@ -157,7 +157,11 @@ export const HoldToRevealButton: React.FC<Props> = ({
     const half = breathMs / 2;
     const t0 = performance.now();
     let lastCycle = -1;
-    let lastInhale: boolean | null = null;
+    const lines = [
+      t('reveal.hold.line1'),
+      t('reveal.hold.line2'),
+      t('reveal.hold.line3'),
+    ];
     const step = (now: number) => {
       const elapsed = now - t0;
       if (elapsed >= total) {
@@ -182,11 +186,8 @@ export const HoldToRevealButton: React.FC<Props> = ({
       if (cycle !== lastCycle) {
         lastCycle = cycle;
         setBreathN(cycle + 1);
+        setCoach(lines[cycle]);
         if (cycle > 0 && navigator.vibrate) navigator.vibrate(10);
-      }
-      if (inhale !== lastInhale) {
-        lastInhale = inhale;
-        setCoach(inhale ? t('reveal.hold.in') : t('reveal.hold.out'));
       }
       rafRef.current = requestAnimationFrame(step);
     };
@@ -251,7 +252,7 @@ export const HoldToRevealButton: React.FC<Props> = ({
             cy={RING_BOX / 2}
             r={RING_RADIUS}
             fill='none'
-            stroke='rgba(245, 250, 251, 0.15)'
+            stroke='rgba(30, 37, 56, 0.12)'
             strokeWidth='6'
           />
           <circle
@@ -271,7 +272,7 @@ export const HoldToRevealButton: React.FC<Props> = ({
       </button>
 
       <div aria-live='polite' style={{textAlign: 'center', minHeight: 64}}>
-        <p style={{fontSize: 18, color: 'var(--neon-white)'}}>{coach}</p>
+        <p style={{fontSize: 18, color: 'var(--main-color)'}}>{coach}</p>
         {breathN > 0 && (
           <p className={styles.muted} style={{fontSize: 14, marginTop: 8}}>
             {t('reveal.hold.counter', {n: breathN})}

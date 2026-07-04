@@ -7,12 +7,12 @@
   animation: crossfadeIn var(--phase-crossfade) ease-in-out both;
 }
 
-.night {
-  background-color: var(--night-surface);
+.ritual {
+  background-color: var(--neon-white);
 
   h2,
   p {
-    color: var(--neon-white);
+    color: var(--main-color);
   }
 }
 
@@ -21,7 +21,7 @@
 }
 
 .muted {
-  color: rgba(245, 250, 251, 0.6);
+  color: var(--text-color);
 }
 
 @keyframes crossfadeIn {
@@ -51,7 +51,7 @@
   width: 96px;
   height: 64px;
   border-radius: var(--radius-card);
-  background-color: rgba(245, 250, 251, 0.08);
+  background-color: rgba(30, 37, 56, 0.08);
   animation: silhouetteIn 250ms ease-out both;
 }
 
@@ -303,14 +303,33 @@
   justify-content: center;
   gap: 6px;
   font-size: 16px;
-  background-color: rgba(245, 250, 251, 0.12);
-  color: var(--neon-white);
+  background-color: rgba(30, 37, 56, 0.08);
+  color: var(--main-color);
 }
 
 .optinPillActive {
   background-color: var(--accent-color);
   color: var(--main-color);
   box-shadow: var(--glow-teal);
+}
+
+.optinPillSmall {
+  min-height: 36px;
+  padding: 0 16px;
+  font-size: 14px;
+}
+
+.wallOptinRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 8px 4px 0;
+}
+
+.wallOptinLabel {
+  font-size: 13px;
+  color: var(--text-color);
 }
 
 .primaryButton {

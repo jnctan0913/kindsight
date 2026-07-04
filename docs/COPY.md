@@ -184,8 +184,9 @@ The quiet section. Night navy screens (DRD 9.1). Every string is load-bearing; d
 | `reveal.invite.title` | Before you read, take three breaths. | 读之前，先深呼吸三次。 | Unlock screen heading (state C). |
 | `reveal.hold.button` | Hold | 按住 | Label inside the 120px circle. |
 | `reveal.hold.button.aria` | Hold for three breaths to open your wall | 按住并呼吸三次，打开你的墙 | Button aria label (DRD 3.4). |
-| `reveal.hold.in` | Breathe in... | 吸气…… | Coach text, inhale half of each cycle. |
-| `reveal.hold.out` | Breathe out... | 呼气…… | Coach text, exhale half. |
+| `reveal.hold.line1` | Someone in this room noticed you. | 这个房间里，有人注意到了你。 | Priming line, breath 1 (replaced breathe-in/out coaching, 2026-07-04). |
+| `reveal.hold.line2` | These words were written only for you. | 这些话，是只写给你的。 | Priming line, breath 2. |
+| `reveal.hold.line3` | Take them in slowly. | 慢慢读，慢慢收下。 | Priming line, breath 3. |
 | `reveal.hold.counter` | Breath {n} of 3 | 第 {n} 次呼吸 · 共 3 次 | Muted counter under coach text. |
 | `reveal.hold.reset` | Hold through all three breaths. Start again when you're ready. | 要按住呼吸满三次。准备好了，再来一次。 | Early-release reset. Gentle, no error styling (DRD state C). |
 | `reveal.hold.altLink` | Can't hold the button? | 按不住按钮？ | Small text link under the circle, opens timed mode (DRD 3.4). |

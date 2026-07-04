@@ -16,7 +16,7 @@ export default function Home() {
         minHeight: '100dvh',
         padding: 24,
         textAlign: 'center',
-        backgroundColor: 'var(--night-surface)',
+        backgroundColor: 'var(--neon-white)',
       }}
     >
       <img
@@ -24,8 +24,8 @@ export default function Home() {
         alt='Kindsight'
         style={{width: '60%', maxWidth: 280, height: 'auto'}}
       />
-      <h1 style={{color: 'var(--neon-white)'}}>Kindsight</h1>
-      <p className='t16' style={{color: 'rgba(245, 250, 251, 0.7)'}}>
+      <h1 style={{color: 'var(--main-color)'}}>Kindsight</h1>
+      <p className='t16' style={{color: 'var(--text-color)'}}>
         The light behind you
       </p>
       <Link
