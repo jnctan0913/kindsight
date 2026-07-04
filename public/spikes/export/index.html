@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kindsight M1 export spike</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dosis:wght@500;600;700&family=League+Spartan:wght@600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --main-color: #1E2538;
+    --neon-white: #F5FAFB;
+    --accent-color: #00C79F;
+    --accent-deep: #00795F;
+    --aurora-cream: #FFF3D6;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    font-family: 'Dosis', 'Noto Sans SC', sans-serif;
+    background: var(--neon-white);
+    color: var(--main-color);
+    padding: 20px 16px 48px;
+    max-width: 560px;
+    margin: 0 auto;
+  }
+  h1 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+  .sub { color: #666E84; font-size: 15px; margin-bottom: 20px; }
+  .card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 6px 24px rgba(30,37,56,0.10), 0 2px 6px rgba(30,37,56,0.06);
+  }
+  button {
+    font-family: 'League Spartan', 'Noto Sans SC', sans-serif;
+    font-weight: 600;
+    font-size: 17px;
+    border: none;
+    border-radius: 16px;
+    padding: 14px 20px;
+    cursor: pointer;
+    min-height: 48px;
+  }
+  button:disabled { opacity: 0.5; cursor: default; }
+  .btn-primary {
+    background: var(--main-color);
+    color: var(--neon-white);
+    width: 100%;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 6px 24px rgba(30,37,56,0.15);
+  }
+  .btn-secondary {
+    background: #E8F4FB;
+    color: var(--main-color);
+    font-size: 14px;
+    padding: 10px 14px;
+    min-height: 40px;
+  }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  #preview { width: 100%; border-radius: 12px; display: block; box-shadow: 0 6px 24px rgba(30,37,56,0.12); }
+  #diag {
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: var(--main-color);
+    color: #C9F5EA;
+    border-radius: 12px;
+    padding: 12px;
+    max-height: 320px;
+    overflow-y: auto;
+  }
+  #toast {
+    position: fixed;
+    left: 16px; right: 16px; bottom: 24px;
+    background: var(--main-color);
+    color: var(--neon-white);
+    border-radius: 16px;
+    padding: 14px 18px;
+    font-size: 15px;
+    box-shadow: 0 0 24px rgba(0,199,159,0.35);
+    display: none;
+    z-index: 40;
+  }
+  #overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(30,37,56,0.97);
+    z-index: 50;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
+    overflow-y: auto;
+  }
+  #overlay.open { display: flex; }
+  #overlay p {
+    color: var(--neon-white);
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+    margin: 10px 0 16px;
+  }
+  #overlay img {
+    max-width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 0 32px rgba(255,243,214,0.45);
+  }
+  #overlay .close {
+    margin-top: 20px;
+    background: transparent;
+    color: var(--aurora-cream);
+    border: 1px solid rgba(255,243,214,0.4);
+  }
+  #autotest { display: none; }
+</style>
+</head>
+<body>
+
+<h1>Kindsight export spike (M1)</h1>
+<p class="sub">Hand-drawn Canvas 2D wall export. D19, F7 edge cases, three save paths.</p>
+
+<div class="card">
+  <button id="export-btn" class="btn-primary" disabled>Making your image... 正在生成图片……</button>
+  <div class="row">
+    <button id="force-download" class="btn-secondary">Force download path</button>
+    <button id="force-overlay" class="btn-secondary">Force long-press path</button>
+    <button id="toggle-25" class="btn-secondary">Test 25-note wall</button>
+  </div>
+</div>
+
+<div class="card">
+  <img id="preview" alt="Rendered wall preview">
+</div>
+
+<div class="card">
+  <div id="diag">booting...</div>
+</div>
+
+<div id="toast"></div>
+
+<div id="overlay">
+  <p>Press and hold the image to save it<br>长按图片即可保存</p>
+  <img id="overlay-img" alt="Your Kindsight wall">
+  <button class="close" onclick="document.getElementById('overlay').classList.remove('open')">Close 关闭</button>
+</div>
+
+<pre id="autotest"></pre>
+
+<script>
+'use strict';
+
+const TOKENS = {
+  navy: '#1E2538',
+  offWhite: '#F5FAFB',
+  teal: '#00C79F',
+  tealDeep: '#00795F',
+  auroraBlue: '#1E4FA3',
+  auroraCream: '#FFF3D6',
+  muted: '#666E84',
+};
+
+const STR = {
+  footerEN: 'Written anonymously by the people in your room. Kindsight.',
+  footerZH: '这间房里的人，匿名为你写下。Kindsight。',
+  cta: 'Save my wall as an image 把墙保存为图片',
+  rendering: 'Making your image... 正在生成图片……',
+  success: 'Saved. This image is your keepsake. The room deletes itself after the session.\n已保存。这张图片是留给你的纪念。',
+  titleEN: name => `${name}'s wall`,
+};
+
+const FRAMES = {
+  moment:   { en: 'Moment',   zh: '时刻' },
+  strength: { en: 'Strength', zh: '强项' },
+  wish:     { en: 'Wish',     zh: '祝愿' },
+};
+
+const NOTES_12 = [
+  { frame: 'moment',   lang: 'en', text: 'I noticed you stayed calm when the demo broke and walked the room through it like nothing happened.' },
+  { frame: 'strength', lang: 'zh', text: '我觉得你很擅长把一场乱糟糟的讨论理成三步清晰的行动，每次开完会大家都知道下一步做什么。' },
+  { frame: 'wish',     lang: 'en', text: 'I hope you get to lead the next client pitch. You are more ready than you think.' },
+  { frame: 'moment',   lang: 'zh', text: '我注意到大家都走了以后，你留下来帮 Mei 重新打包物料，还顺手把场地恢复了原样。' },
+  { frame: 'strength', lang: 'en', text: 'I think you’re strong at asking the question everyone else is avoiding, and asking it kindly.' },
+  { frame: 'wish',     lang: 'zh', text: '我希望你继续在白板上画图。今天的讨论因为它变得不一样，很多人是看着你的图才想明白的。' },
+  { frame: 'moment',   lang: 'en', text: 'I noticed you gave your seat and your notes to the person who joined late, without making it a thing.' },
+  { frame: 'strength', lang: 'en', text: 'I think you’re strong at turning a messy discussion into three clear next steps.' },
+  { frame: 'wish',     lang: 'en', text: 'I hope you keep sketching on the whiteboard. It changed how we talked today.' },
+  { frame: 'moment',   lang: 'zh', text: '我注意到演示出错的时候，你一直很沉着，还开了个小玩笑让大家放松下来。' },
+  { frame: 'strength', lang: 'en', text: 'I think you’re strong at remembering what people said last week and bringing it back at the right moment.' },
+  { frame: 'wish',     lang: 'en', text: 'I hope you take the holiday you keep postponing. The team will hold the fort, I promise.' },
+];
+
+function makeNotes25() {
+  const out = [];
+  for (let i = 0; i < 25; i++) {
+    const base = NOTES_12[i % NOTES_12.length];
+    out.push({ ...base, text: base.text + (i >= 12 ? ' (' + (i + 1) + ')' : '') });
+  }
+  return out;
+}
+
+const W = 1080;
+const PAD = 64;
+const CARD_PAD = 40;
+const CARD_RADIUS = 20;
+const CARD_GAP = 32;
+const HEADER_H = 320;
+const FOOTER_H = 170;
+const NOTE_FONT = '600 34px Dosis, "Noto Sans SC", sans-serif';
+const NOTE_LINE_H = 50;
+const PILL_FONT = '600 24px "League Spartan", "Noto Sans SC", sans-serif';
+const PILL_H = 44;
+const SAFE_AREA = 16_000_000;
+
+const state = {
+  notes: NOTES_12,
+  file: null,
+  blob: null,
+  dataURL: null,
+  meta: {},
+  ready: false,
+  mascot: null,
+};
+
+const diagLines = [];
+function diag(msg) {
+  diagLines.push(msg);
+  document.getElementById('diag').textContent = diagLines.join('\n');
+  const el = document.getElementById('diag');
+  el.scrollTop = el.scrollHeight;
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.display = 'block';
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
+
+// ---- CJK-aware wrapping: CJK breaks per character, Latin per word ----
+
+const CJK_RE = /[⺀-⻿　-〿぀-ヿ㇀-㇯㈀-鿿豈-﫿︰-﹏＀-｠]/;
+
+function tokenize(text) {
+  const tokens = [];
+  let word = '';
+  for (const ch of text) {
+    if (CJK_RE.test(ch)) {
+      if (word) { tokens.push({ t: word, cjk: false }); word = ''; }
+      tokens.push({ t: ch, cjk: true });
+    } else if (ch === ' ') {
+      if (word) { tokens.push({ t: word, cjk: false }); word = ''; }
+      tokens.push({ t: ' ', space: true });
+    } else {
+      word += ch;
+    }
+  }
+  if (word) tokens.push({ t: word, cjk: false });
+  return tokens;
+}
+
+function wrapText(ctx, text, maxWidth) {
+  const lines = [];
+  let line = '';
+  let lineW = 0;
+  for (const tok of tokenize(text)) {
+    const w = ctx.measureText(tok.t).width;
+    if (tok.space) {
+      if (lineW > 0) { line += ' '; lineW += w; }
+      continue;
+    }
+    if (lineW + w > maxWidth && lineW > 0) {
+      lines.push(line.trimEnd());
+      line = tok.t;
+      lineW = w;
+    } else {
+      line += tok.t;
+      lineW += w;
+    }
+  }
+  if (line.trim()) lines.push(line.trimEnd());
+  return lines;
+}
+
+// ---- layout and drawing ----
+
+function roundRectPath(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function layoutNotes(ctx, notes) {
+  const cardW = W - PAD * 2;
+  const textW = cardW - CARD_PAD * 2;
+  ctx.font = NOTE_FONT;
+  return notes.map(n => {
+    ctx.font = NOTE_FONT;
+    const lines = wrapText(ctx, n.text, textW);
+    const cardH = CARD_PAD + PILL_H + 24 + lines.length * NOTE_LINE_H + CARD_PAD - 8;
+    return { note: n, lines, cardH };
+  });
+}
+
+function computeScale(w, h) {
+  // spike refinement of ENG-PLAN section 7: fractional clamp instead of integer
+  // floor, because a 12-note wall (about 4.1M logical px) already loses 2x under
+  // floor(sqrt(16M/area)). Fractional keeps 1.9x there and degrades smoothly.
+  return Math.max(1, Math.min(2, Math.sqrt(SAFE_AREA / (w * h))));
+}
+
+function renderWall(notes) {
+  const t0 = performance.now();
+  const measure = document.createElement('canvas').getContext('2d');
+  const laid = layoutNotes(measure, notes);
+  const notesH = laid.reduce((s, l) => s + l.cardH, 0) + CARD_GAP * (laid.length - 1);
+  let H = HEADER_H + CARD_GAP + notesH + CARD_GAP + FOOTER_H;
+
+  let scale = computeScale(W, H);
+  let truncated = false;
+  if (W * H > SAFE_AREA) {
+    // even 1x exceeds the cap: clamp to the first segment (plan section 7 step 3)
+    H = Math.floor(SAFE_AREA / W);
+    truncated = true;
+  }
+
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(W * scale);
+  canvas.height = Math.round(H * scale);
+  const ctx = canvas.getContext('2d');
+  ctx.scale(scale, scale);
+  ctx.textBaseline = 'alphabetic';
+
+  ctx.fillStyle = TOKENS.offWhite;
+  ctx.fillRect(0, 0, W, H);
+
+  // header band: aurora gradient, deep blue top-left to cream bottom-right
+  const grad = ctx.createLinearGradient(0, 0, W, HEADER_H);
+  grad.addColorStop(0, TOKENS.auroraBlue);
+  grad.addColorStop(0.55, TOKENS.teal);
+  grad.addColorStop(1, TOKENS.auroraCream);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, HEADER_H);
+
+  // white text only on the deep-blue end (DRD section 9 rule 2)
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = '700 64px Dosis, "Noto Sans SC", sans-serif';
+  ctx.fillText('Kindsight', PAD, 118);
+  ctx.font = '600 44px "League Spartan", "Noto Sans SC", sans-serif';
+  ctx.fillText(STR.titleEN('Alex'), PAD, 196);
+  ctx.font = '500 30px Dosis, "Noto Sans SC", sans-serif';
+  ctx.globalAlpha = 0.85;
+  ctx.fillText('8 September 2026', PAD, 246);
+  ctx.globalAlpha = 1;
+
+  if (state.mascot) {
+    const mh = HEADER_H - 60;
+    const mw = mh * (state.mascot.naturalWidth / state.mascot.naturalHeight);
+    ctx.drawImage(state.mascot, W - PAD - mw, 30, mw, mh);
+  }
+
+  // note cards
+  let y = HEADER_H + CARD_GAP;
+  const cardW = W - PAD * 2;
+  for (const l of laid) {
+    if (truncated && y + l.cardH > H - FOOTER_H) break;
+    ctx.save();
+    ctx.shadowColor = 'rgba(30,37,56,0.10)';
+    ctx.shadowBlur = 24;
+    ctx.shadowOffsetY = 6;
+    ctx.fillStyle = '#FFFFFF';
+    roundRectPath(ctx, PAD, y, cardW, l.cardH, CARD_RADIUS);
+    ctx.fill();
+    ctx.restore();
+
+    const label = FRAMES[l.note.frame][l.note.lang];
+    ctx.font = PILL_FONT;
+    const pillW = ctx.measureText(label).width + 48;
+    ctx.fillStyle = TOKENS.teal;
+    roundRectPath(ctx, PAD + CARD_PAD, y + CARD_PAD - 8, pillW, PILL_H, PILL_H / 2);
+    ctx.fill();
+    ctx.fillStyle = TOKENS.navy;
+    ctx.fillText(label, PAD + CARD_PAD + 24, y + CARD_PAD - 8 + PILL_H / 2 + 9);
+
+    ctx.font = NOTE_FONT;
+    ctx.fillStyle = TOKENS.navy;
+    let ty = y + CARD_PAD + PILL_H + 24 + 26;
+    for (const line of l.lines) {
+      ctx.fillText(line, PAD + CARD_PAD, ty);
+      ty += NOTE_LINE_H;
+    }
+    y += l.cardH + CARD_GAP;
+  }
+
+  // footer: navy band, bilingual keepsake line
+  ctx.fillStyle = TOKENS.navy;
+  ctx.fillRect(0, H - FOOTER_H, W, FOOTER_H);
+  ctx.fillStyle = TOKENS.offWhite;
+  ctx.textAlign = 'center';
+  ctx.font = '600 28px Dosis, "Noto Sans SC", sans-serif';
+  ctx.fillText(STR.footerEN, W / 2, H - FOOTER_H + 72);
+  ctx.font = '500 28px "Noto Sans SC", Dosis, sans-serif';
+  ctx.fillText(STR.footerZH, W / 2, H - FOOTER_H + 118);
+  ctx.textAlign = 'left';
+
+  const ms = Math.round(performance.now() - t0);
+  return {
+    canvas,
+    meta: {
+      notes: notes.length,
+      logicalSize: `${W}x${H}`,
+      scale: Math.round(scale * 100) / 100,
+      pixelSize: `${canvas.width}x${canvas.height}`,
+      areaPx: canvas.width * canvas.height,
+      truncated,
+      drawMs: ms,
+    },
+  };
+}
+
+// ---- pre-render pipeline (F7: blob exists before the tap) ----
+
+async function loadFonts() {
+  const t0 = performance.now();
+  await Promise.all([
+    document.fonts.load('700 64px Dosis'),
+    document.fonts.load('600 34px Dosis'),
+    document.fonts.load('600 44px "League Spartan"'),
+    document.fonts.load('600 24px "League Spartan"'),
+    document.fonts.load('500 34px "Noto Sans SC"', '这间房里的人匿名为你写下时刻强项祝愿'),
+    document.fonts.load('700 34px "Noto Sans SC"', '这间房里的人匿名为你写下时刻强项祝愿'),
+  ]);
+  await document.fonts.ready;
+  return Math.round(performance.now() - t0);
+}
+
+function loadMascot() {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = 'kindsight-mascot-only.png';
+  });
+}
+
+function canvasToBlob(canvas) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(b => b ? resolve(b) : reject(new Error('toBlob returned null')), 'image/png');
+  });
+}
+
+async function preRender() {
+  const btn = document.getElementById('export-btn');
+  btn.disabled = true;
+  btn.textContent = STR.rendering;
+  state.ready = false;
+
+  const { canvas, meta } = renderWall(state.notes);
+  const t0 = performance.now();
+  const blob = await canvasToBlob(canvas);
+  meta.blobMs = Math.round(performance.now() - t0);
+  meta.blobKB = Math.round(blob.size / 1024);
+
+  state.blob = blob;
+  state.file = new File([blob], 'kindsight-wall.png', { type: 'image/png' });
+  state.dataURL = URL.createObjectURL(blob);
+  state.meta = meta;
+  state.ready = true;
+
+  document.getElementById('preview').src = state.dataURL;
+  btn.disabled = false;
+  btn.textContent = STR.cta;
+
+  diag(`render: ${meta.notes} notes, logical ${meta.logicalSize}, scale ${meta.scale}x, pixels ${meta.pixelSize} (${(meta.areaPx / 1e6).toFixed(1)}M px)` + (meta.truncated ? ', TRUNCATED to first segment' : ''));
+  diag(`timing: draw ${meta.drawMs}ms, toBlob ${meta.blobMs}ms, PNG ${meta.blobKB}KB`);
+  return meta;
+}
+
+// ---- save paths ----
+
+function detectPlatform() {
+  const ua = navigator.userAgent;
+  const iOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const android = /Android/.test(ua);
+  return { iOS, android, label: iOS ? 'iOS' : android ? 'Android' : 'desktop' };
+}
+
+function shareSupported() {
+  if (!navigator.canShare || !state.file) return false;
+  try { return navigator.canShare({ files: [state.file] }); } catch { return false; }
+}
+
+function saveViaDownload() {
+  const a = document.createElement('a');
+  a.href = state.dataURL;
+  a.download = 'kindsight-wall.png';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  diag('save path: anchor download');
+  toast(STR.success);
+}
+
+function saveViaOverlay(reason) {
+  document.getElementById('overlay-img').src = state.dataURL;
+  document.getElementById('overlay').classList.add('open');
+  diag('save path: long-press overlay (' + reason + ')');
+}
+
+function onExportTap() {
+  if (!state.ready) return;
+  const t0 = performance.now();
+  const platform = detectPlatform();
+
+  if (shareSupported()) {
+    // no await before share: the pre-rendered File keeps this inside the gesture (F7)
+    navigator.share({ files: [state.file] })
+      .then(() => {
+        diag(`save path: Web Share, sheet resolved in ${Math.round(performance.now() - t0)}ms`);
+        toast(STR.success);
+      })
+      .catch(err => {
+        if (err && err.name === 'AbortError') {
+          diag('share cancelled by user, showing long-press fallback');
+          saveViaOverlay('share cancelled');
+        } else {
+          diag(`share failed: ${err && err.name}: ${err && err.message}`);
+          saveViaOverlay('share error ' + (err && err.name));
+        }
+      });
+    diag(`save path attempt: Web Share (files), called sync in tap handler, ${Math.round(performance.now() - t0)}ms to invoke`);
+    return;
+  }
+
+  if (!platform.iOS) {
+    saveViaDownload();
+    return;
+  }
+  saveViaOverlay('no share support on iOS');
+}
+
+// ---- canvas cap probe (F7 diagnostics) ----
+
+function probeCanvasCap() {
+  const candidates = [
+    [1080, 8192],
+    [2160, 7500],
+    [2160, 12000],
+    [4096, 4096],
+    [8192, 4096],
+    [8192, 8192],
+  ];
+  let maxOk = 0;
+  let firstFail = null;
+  for (const [w, h] of candidates) {
+    let ok = false;
+    try {
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      const x = c.getContext('2d');
+      x.fillStyle = '#123456';
+      x.fillRect(w - 1, h - 1, 1, 1);
+      const px = x.getImageData(w - 1, h - 1, 1, 1).data;
+      ok = px[3] === 255 && px[0] === 0x12;
+      c.width = 1; c.height = 1;
+    } catch { ok = false; }
+    if (ok) maxOk = Math.max(maxOk, w * h);
+    else if (!firstFail) firstFail = w * h;
+  }
+  return { maxOkMPx: (maxOk / 1e6).toFixed(1), firstFailMPx: firstFail ? (firstFail / 1e6).toFixed(1) + 'M px' : 'none in probe set' };
+}
+
+// ---- boot ----
+
+async function boot() {
+  const platform = detectPlatform();
+  diag(`device: ${platform.label}, DPR ${window.devicePixelRatio}, viewport ${window.innerWidth}x${window.innerHeight}`);
+  diag(`UA: ${navigator.userAgent}`);
+
+  const cap = probeCanvasCap();
+  diag(`canvas cap probe: max OK ${cap.maxOkMPx}M px, first fail ${cap.firstFailMPx} (renderer safe area: ${SAFE_AREA / 1e6}M px)`);
+
+  const fontMs = await loadFonts();
+  diag(`fonts ready in ${fontMs}ms (Dosis, League Spartan, Noto Sans SC subset)`);
+
+  state.mascot = await loadMascot();
+  diag(state.mascot ? `mascot loaded ${state.mascot.naturalWidth}x${state.mascot.naturalHeight}` : 'mascot FAILED to load, header renders text-only');
+
+  await preRender();
+  diag(`canShare files: ${shareSupported()} (share sheet ${shareSupported() ? 'is' : 'is NOT'} the primary path here)`);
+
+  document.getElementById('export-btn').addEventListener('click', onExportTap);
+  document.getElementById('force-download').addEventListener('click', () => state.ready && saveViaDownload());
+  document.getElementById('force-overlay').addEventListener('click', () => state.ready && saveViaOverlay('forced'));
+  document.getElementById('toggle-25').addEventListener('click', async ev => {
+    const to25 = state.notes.length !== 25;
+    state.notes = to25 ? makeNotes25() : NOTES_12;
+    ev.target.textContent = to25 ? 'Back to 12-note wall' : 'Test 25-note wall';
+    diag(`--- switching to ${state.notes.length}-note wall ---`);
+    await preRender();
+  });
+
+  if (new URLSearchParams(location.search).has('autotest')) await autotest();
+}
+
+async function autotest() {
+  const results = { pass: true, steps: [] };
+  const check = (name, ok, detail) => {
+    results.steps.push({ name, ok, detail });
+    if (!ok) results.pass = false;
+  };
+  try {
+    const m12 = state.meta;
+    check('render12_blob', state.blob instanceof Blob && state.blob.size > 10000, `blob ${m12.blobKB}KB`);
+    check('render12_near_2x', m12.scale > 1.5 && m12.scale <= 2, `scale ${m12.scale}, ${m12.pixelSize}`);
+    check('render12_under_cap', m12.areaPx <= SAFE_AREA, `${(m12.areaPx / 1e6).toFixed(1)}M <= ${SAFE_AREA / 1e6}M`);
+    check('render12_not_truncated', !m12.truncated, m12.logicalSize);
+
+    const zh = wrapText(Object.assign(document.createElement('canvas').getContext('2d'), { font: NOTE_FONT }), NOTES_12[1].text, W - PAD * 2 - CARD_PAD * 2);
+    check('cjk_wraps_multiline', zh.length >= 2, `${zh.length} lines, first: ${zh[0]}`);
+
+    state.notes = makeNotes25();
+    const m25 = await preRender();
+    check('render25_blob', state.blob instanceof Blob && state.blob.size > 10000, `blob ${m25.blobKB}KB`);
+    check('render25_scale_dropped', m25.scale < 2 && m25.scale >= 1, `scale ${m25.scale}, ${m25.pixelSize}, ${(m25.areaPx / 1e6).toFixed(1)}M px`);
+    check('render25_under_cap', m25.areaPx <= SAFE_AREA, `${(m25.areaPx / 1e6).toFixed(1)}M <= ${SAFE_AREA / 1e6}M`);
+  } catch (e) {
+    check('exception', false, String(e && e.stack || e));
+  }
+  document.getElementById('autotest').textContent = 'AUTOTEST ' + (results.pass ? 'PASS' : 'FAIL') + '\n' + JSON.stringify(results, null, 2);
+  document.getElementById('autotest').style.display = 'block';
+  document.title = 'AUTOTEST:' + (results.pass ? 'PASS' : 'FAIL');
+  diag('autotest ' + (results.pass ? 'PASS' : 'FAIL'));
+}
+
+boot().catch(e => diag('BOOT ERROR: ' + (e && e.stack || e)));
+</script>
+</body>
+</html>
