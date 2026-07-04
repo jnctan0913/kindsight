@@ -6,6 +6,7 @@ import {InputField} from './InputField';
 import {BlockHeading} from './BlockHeading';
 import {RosterChip} from './RosterChip';
 import {FrameTag} from './FrameTag';
+import {Modal} from './Modal';
 
 export const components = {
   Screen,
@@ -16,4 +17,5 @@ export const components = {
   BlockHeading,
   RosterChip,
   FrameTag,
+  Modal,
 };

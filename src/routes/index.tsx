@@ -4,4 +4,5 @@ export enum Routes {
   JOIN = '/r',
   CLAIM = '/r/claim',
   BRIEFING = '/briefing',
+  HOST = '/host',
 }

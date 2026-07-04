@@ -64,6 +64,20 @@ export default function Home() {
       >
         Open the join flow demo
       </Link>
+      <Link
+        href={Routes.HOST}
+        style={{
+          padding: '16px 32px',
+          borderRadius: 'var(--radius-control)',
+          backgroundColor: 'var(--main-color)',
+          boxShadow: 'var(--glow-teal), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+          color: 'var(--neon-white)',
+          fontSize: 18,
+          fontFamily: 'var(--font-league-spartan)',
+        }}
+      >
+        Open the host console demo
+      </Link>
     </main>
   );
 }
