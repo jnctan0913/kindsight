@@ -1,0 +1,10 @@
+# paid marketplace templates: reference only, never publish
+reference/
+
+.DS_Store
+node_modules/
+.next/
+out/
+.env
+.env.*
+*.log
