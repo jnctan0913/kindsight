@@ -3,9 +3,15 @@ reference/
 
 .DS_Store
 node_modules/
+
+# python venv used by .claude file-ingestion scripts
+.venv/
 .next/
+.next-dev/
 out/
+tsconfig.tsbuildinfo
 .env
 .env.*
 !.env.local.example
 *.log
+.gstack/
