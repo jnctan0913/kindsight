@@ -1,0 +1,34 @@
+name: Supabase keepalive
+
+# Finding F5: free-tier Supabase projects pause after about a week of
+# inactivity. A twice-weekly ping keeps the project awake.
+
+on:
+  schedule:
+    - cron: '0 6 * * 1,4'
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST endpoint
+        env:
+          SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL || '' }}
+          SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY || '' }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "Supabase repo variables not set yet; skipping keepalive."
+            exit 0
+          fi
+          status=$(curl -s -o /dev/null -w '%{http_code}' \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+            "$SUPABASE_URL/rest/v1/")
+          echo "Supabase REST responded with HTTP $status"
+          if [ "$status" -ge 500 ]; then
+            echo "Server error from Supabase; keepalive ping failed."
+            exit 1
+          fi

@@ -1,0 +1,47 @@
+:root {
+  --white-color: #fff;
+  --text-color: #666E84;
+
+  --main-color: #1E2538;
+  --neon-white: #F5FAFB;
+  --border-color: #C8CDD9;
+  --main-turquoise: #00B0B9;
+
+  /* Kindsight (DRD section 9) */
+  --accent-color: #00C79F;
+  --accent-deep: #00795F;
+  --aurora: linear-gradient(160deg, #1E4FA3 0%, #00C79F 55%, #FFF3D6 100%);
+  --aurora-cream: #FFF3D6;
+  --host-surface: #E8F4FB;
+  --night-surface: #1E2538;
+  --warn-color: #B45309;
+  --warn-surface: #FEF3C7;
+
+  /* clay treatment (DRD 9.1) */
+  --radius-card: 20px;
+  --radius-control: 16px;
+  --radius-pill: 999px;
+  --shadow-soft: 0 6px 24px rgba(30, 37, 56, 0.10), 0 2px 6px rgba(30, 37, 56, 0.06);
+  --glow-teal: 0 0 24px rgba(0, 199, 159, 0.35);
+  --glow-cream: 0 0 32px rgba(255, 243, 214, 0.45);
+
+  /* motion */
+  --breath-cycle: 3200ms;
+  --note-enter: 450ms;
+  --phase-crossfade: 400ms;
+
+  --header-height: 42px;
+  --footer-height: 70px;
+
+  --border-radius: 10px;
+  --screen-width: 650px;
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+}
+
+.main-color {
+  color: var(--main-color);
+}
