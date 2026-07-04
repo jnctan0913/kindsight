@@ -12,10 +12,8 @@ export const metadata: Metadata = {
 // the player runs at /r. Replaces the earlier reveal-only demo.
 export default function RehearsalPreviewPage() {
   return (
-    <div style={{padding: '24px 16px', minHeight: '100dvh'}}>
-      <Suspense fallback={null}>
-        <PlayerPreview initialStep='join' initialMode='round_robin' />
-      </Suspense>
-    </div>
+    <Suspense fallback={null}>
+      <PlayerPreview initialStep='join' initialMode='round_robin' />
+    </Suspense>
   );
 }
