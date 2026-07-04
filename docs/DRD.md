@@ -679,6 +679,16 @@ No horizontal scroll on any surface at any width. 4/8pt spacing grid throughout,
 
 ---
 
+## 13.1 Background music (added 2026-07-04)
+
+Big screen is the only audio surface, Kahoot-style. Player phones never play music (the unlock chime from Q7 is the sole player audio). Files ship in the static bundle from `assets/music/{lobby,writing,wrapup}/`; filenames become track names.
+
+- Phase behavior: Lobby plays its set on shuffle-loop. Briefing auto-ducks to 20% volume. Writing plays its set. Reveal: hard stop, 2s fade-out when the host triggers the settle moment; no music control is available again until the highlight wall. Wrap-up/highlight wall plays its set, quiet default.
+- Mood styles: if tracks exist for more than one style (subfolders or filename prefix), room creation offers a mood picker; the console can switch mood live between phases.
+- Console controls: play/pause, volume, skip track, per-phase on/off. Big screen shows a small muted-note icon when music is off, nothing when on.
+- Browser autoplay: the host's first interaction with the big-screen window arms audio; the big screen shows "click to enable sound" if it loads unarmed.
+- Licensing: only royalty-free or licensed tracks may ship in the public repo; note the license source per file in `assets/music/README` at build time.
+
 ## 14. Handover Notes for Engineering
 
 - Build order follows PRD Risk 3: **HoldToRevealButton and RevealSequence first**, as a standalone prototype on real phones, before any other screen.

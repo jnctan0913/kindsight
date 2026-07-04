@@ -190,6 +190,7 @@ Reach is players per typical session cohort per quarter (assumed 500). Effort in
 | Bilingual EN/ZH toggle (P2) | 250 | 1 | 80% | 1 | 200 | P1 |
 | Opt-in highlight wall (B3) | 250 | 1 | 50% | 1 | 125 | P1 |
 | Host rehearsal mode: "preview the ritual" demo with fake notes (added 2026-07-04) | 250 | 1 | 80% | 1 | 200 | P1 |
+| Background music, big screen only: per-phase tracks, host mood picker, volume/mute/skip, hard stop at Reveal (added 2026-07-04) | 250 | 1 | 80% | 1 | 200 | P1 |
 
 \* High score from tiny effort; it is also a launch-blocking safety requirement regardless of score.
 \** Promoted to P0 despite score: the success criterion "no facilitator tech intervention" fails without it.
