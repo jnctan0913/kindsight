@@ -5,7 +5,14 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {BASE_PATH, asset} from '../../config';
 import {components} from '../../components';
 import {useT} from '../../i18n';
-import {advancePhase, createRoom, getSnapshot} from '../../lib/api';
+import {
+  advancePhase,
+  createRoom,
+  getModerationFeed,
+  getSnapshot,
+  killNote,
+} from '../../lib/api';
+import {subscribeToRoom, type RoomSubscription} from '../../lib/realtime';
 import {
   listActiveRooms,
   publishScreenState,
@@ -32,11 +39,17 @@ import {
   MOCK_OPTED_IN_COUNT,
   MOCK_REVEAL_STATUS,
   MOCK_ROUND_PROGRESS,
+  REVEAL_FLOOR,
   type HostRosterEntry,
   type HostNote,
   type WritingMode,
 } from '../../mock/room';
-import type {RoomPhase, RosterEntry as PublicRosterEntry} from '../../lib/types';
+import type {
+  HostSnapshot,
+  ModerationNote,
+  RoomPhase,
+  RosterEntry as PublicRosterEntry,
+} from '../../lib/types';
 import {ConsoleShell} from './components/ConsoleShell';
 import {type HostPhase} from './components/PhaseStepper';
 import {Toast} from './components/Toast';
@@ -118,6 +131,50 @@ const hostRosterFromNames = (names: string[]): HostRosterEntry[] =>
 const messageOf = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
 
+const formatClock = (totalSeconds: number): string => {
+  const s = Math.max(0, Math.round(totalSeconds));
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  return `${String(m).padStart(2, '0')}:${String(r).padStart(2, '0')}`;
+};
+
+// Round timer, server-anchored (D22): remaining = round_seconds - elapsed since
+// round_started_at, frozen at timer_paused_at while paused.
+const liveTimerString = (snap: HostSnapshot, skewMs: number): string => {
+  if (!snap.round_started_at) return formatClock(snap.round_seconds);
+  const startMs = new Date(snap.round_started_at).getTime();
+  const refMs = snap.timer_paused_at
+    ? new Date(snap.timer_paused_at).getTime()
+    : Date.now() + skewMs;
+  return formatClock(snap.round_seconds - (refMs - startMs) / 1000);
+};
+
+const coverageFromSnapshot = (snap: HostSnapshot) =>
+  snap.coverage
+    .filter((c) => c.claimed)
+    .map((c) => ({name: c.display_name, noteCount: c.live_count}));
+
+const roundProgressFromSnapshot = (snap: HostSnapshot) =>
+  snap.coverage
+    .filter((c) => c.claimed)
+    .map((c) => ({
+      name: c.display_name,
+      state: (c.submitted_this_round ? 'submitted' : 'writing') as
+        | 'submitted'
+        | 'writing'
+        | 'idle',
+    }));
+
+const hostNotesFromModeration = (notes: ModerationNote[]): HostNote[] =>
+  notes
+    .filter((n) => !n.killed)
+    .map((n) => ({
+      id: n.note_id,
+      target: n.target_name,
+      frame: n.frame,
+      content: n.content,
+    }));
+
 const joinUrlForRoom = (code: string): string => {
   const normalized = code.trim().toUpperCase();
   const path = `${BASE_PATH}/?code=${encodeURIComponent(normalized)}`;
@@ -145,6 +202,9 @@ export const HostConsole: React.FC = () => {
   const [paused, setPaused] = useState(false);
   const [graceRunning, setGraceRunning] = useState(false);
   const [notes, setNotes] = useState<HostNote[]>(MOCK_MOD_FEED);
+  const [hostSnap, setHostSnap] = useState<HostSnapshot | null>(null);
+  const [skewMs, setSkewMs] = useState(0);
+  const [liveTimer, setLiveTimer] = useState('');
   const [briefingIndex, setBriefingIndex] = useState(0);
   const [creatingRoom, setCreatingRoom] = useState(false);
   const [roomActionError, setRoomActionError] = useState<string | null>(null);
@@ -237,11 +297,24 @@ export const HostConsole: React.FC = () => {
     setMinutes(Math.max(1, Math.round(snapshot.round_seconds / 60)));
     setRosterNames(snapshot.roster.map((entry) => entry.display_name));
     setHostRoster(hostRosterFromPublic(snapshot.roster));
+    setSkewMs(new Date(snapshot.server_now).getTime() - Date.now());
+    if (snapshot.role === 'host') {
+      setHostSnap(snapshot);
+      setPaused(Boolean(snapshot.timer_paused_at));
+      try {
+        setNotes(hostNotesFromModeration(await getModerationFeed(liveRoomId)));
+      } catch {
+        /* moderation feed is best-effort; keep the last list on a miss */
+      }
+    }
   }, [liveRoomId, rounds]);
 
+  // Converge on server state via realtime pings (snapshot + moderation re-pull),
+  // with a slow poll as reconnect backstop. Replaces the old 4s poll.
   useEffect(() => {
     if (
       !liveRoomId ||
+      isHostAuthMockMode() ||
       step === 'hub' ||
       step === 'create' ||
       step === 'roster' ||
@@ -249,16 +322,30 @@ export const HostConsole: React.FC = () => {
     ) {
       return;
     }
-    void refreshLiveRoom().catch(() => {
-      /* keep the console usable if a background refresh misses */
-    });
-    const id = window.setInterval(() => {
+    const pull = () =>
       void refreshLiveRoom().catch(() => {
         /* keep the console usable if a background refresh misses */
       });
-    }, 4000);
-    return () => window.clearInterval(id);
+    pull();
+    let sub: RoomSubscription | null = subscribeToRoom(liveRoomId, () => pull());
+    const id = window.setInterval(pull, 60000);
+    return () => {
+      window.clearInterval(id);
+      sub?.unsubscribe();
+      sub = null;
+    };
   }, [liveRoomId, refreshLiveRoom, step]);
+
+  // Tick the round timer once a second while writing, server-anchored.
+  useEffect(() => {
+    if (!hostSnap || step !== 'writing') return;
+    setLiveTimer(liveTimerString(hostSnap, skewMs));
+    const id = window.setInterval(
+      () => setLiveTimer(liveTimerString(hostSnap, skewMs)),
+      1000,
+    );
+    return () => window.clearInterval(id);
+  }, [hostSnap, skewMs, step]);
 
   const handleCreateRoom = useCallback(
     async (names: string[]) => {
@@ -337,8 +424,18 @@ export const HostConsole: React.FC = () => {
     [liveRoomId, refreshLiveRoom, rounds],
   );
 
-  const removeNote = (id: string) =>
+  const removeNote = (id: string) => {
+    // Optimistic drop so the feed feels instant; the notes ping reconciles.
     setNotes((prev) => prev.filter((n) => n.id !== id));
+    if (liveRoomId && !isHostAuthMockMode()) {
+      void killNote(id)
+        .then(() => refreshLiveRoom())
+        .catch(() => {
+          /* a failed kill will reappear on the next snapshot pull */
+          void refreshLiveRoom().catch(() => {});
+        });
+    }
+  };
 
   const advanceRound = () => {
     setGraceRunning(true);
@@ -476,15 +573,29 @@ export const HostConsole: React.FC = () => {
   }
 
   const phase = stepToPhase[step];
-  const stillWriting = MOCK_ROUND_PROGRESS.filter(
-    (p) => p.state !== 'submitted',
-  ).length;
+
+  // Live room drives the dashboard from the host snapshot + moderation feed;
+  // mock/demo mode keeps the scripted data.
+  const liveCoverage = hostSnap ? coverageFromSnapshot(hostSnap) : MOCK_COVERAGE;
+  const liveRoundProgress = hostSnap
+    ? roundProgressFromSnapshot(hostSnap)
+    : MOCK_ROUND_PROGRESS;
+  const playerCount = hostSnap
+    ? hostSnap.coverage.filter((c) => c.claimed).length
+    : rosterNames.length;
+  const timerString = hostSnap ? liveTimer || liveTimerString(hostSnap, skewMs) : MOCK_HOST_ROOM.timerRemaining;
+  const currentRound = hostSnap ? Math.max(1, hostSnap.current_round) : MOCK_HOST_ROOM.currentRound;
+  const stillWriting = hostSnap
+    ? mode === 'roundRobin'
+      ? hostSnap.coverage.filter((c) => c.claimed && c.submitted_this_round === false).length
+      : hostSnap.coverage.filter((c) => c.claimed && c.live_count < REVEAL_FLOOR).length
+    : MOCK_ROUND_PROGRESS.filter((p) => p.state !== 'submitted').length;
 
   return (
     <ConsoleShell
       code={roomCode}
       phase={phase}
-      playerCount={rosterNames.length}
+      playerCount={playerCount}
       noteCount={notes.length}
       onHome={() => setStep('hub')}
       onSignOut={() => void handleSignOut()}
@@ -520,14 +631,14 @@ export const HostConsole: React.FC = () => {
       {step === 'writing' && (
         <InGameContent
           mode={mode}
-          round={MOCK_HOST_ROOM.currentRound}
+          round={currentRound}
           totalRounds={rounds}
-          timer={MOCK_HOST_ROOM.timerRemaining}
+          timer={timerString}
           paused={paused}
           graceRunning={graceRunning}
           stillWriting={stillWriting}
-          coverage={MOCK_COVERAGE}
-          roundProgress={MOCK_ROUND_PROGRESS}
+          coverage={liveCoverage}
+          roundProgress={liveRoundProgress}
           notes={notes}
           onTogglePause={() => setPaused((v) => !v)}
           onAdvance={advanceRound}
@@ -540,7 +651,7 @@ export const HostConsole: React.FC = () => {
         <WrapUpContent
           code={roomCode}
           mode={mode}
-          coverage={MOCK_COVERAGE}
+          coverage={liveCoverage}
           revealStatus={MOCK_REVEAL_STATUS}
           optedInCount={MOCK_OPTED_IN_COUNT}
           notes={notes}
