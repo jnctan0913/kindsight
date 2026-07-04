@@ -26,7 +26,7 @@ export const RosterChip: React.FC<Props> = ({
       onClick={onClick}
       disabled={taken}
       aria-pressed={selected}
-      className={taken ? undefined : 'clickable'}
+      className={taken ? undefined : 'clickable pressable'}
       style={{
         minHeight: 48,
         padding: avatarId ? '0 18px 0 8px' : '0 18px',
@@ -35,7 +35,11 @@ export const RosterChip: React.FC<Props> = ({
         gap: 8,
         borderRadius: 'var(--radius-pill)',
         backgroundColor: taken ? '#E6EAF1' : 'var(--white-color)',
-        boxShadow: taken ? 'none' : 'var(--shadow-soft)',
+        boxShadow: taken
+          ? 'none'
+          : selected
+            ? 'var(--shadow-soft), var(--glow-teal)'
+            : 'var(--shadow-soft)',
         border: selected
           ? '2px solid var(--accent-color)'
           : '2px solid transparent',
@@ -43,7 +47,6 @@ export const RosterChip: React.FC<Props> = ({
         fontWeight: 500,
         fontFamily: 'var(--font-dosis), var(--font-noto-sc), sans-serif',
         color: taken ? 'var(--text-color)' : 'var(--main-color)',
-        transition: 'border-color 150ms ease-in-out',
       }}
     >
       {avatarId ? <Avatar avatarId={avatarId} size='sm' /> : null}
