@@ -8,6 +8,7 @@ import {readScreenState, useScreenRoomState, type ScreenRoomState} from '../../l
 import {MOCK_HOST_ROOM} from '../../mock/room';
 import styles from './BigScreen.module.scss';
 import {ProjectorView} from './ProjectorView';
+import {useLiveScreenState} from './useLiveScreen';
 
 function defaultState(code: string): ScreenRoomState {
   return {
@@ -36,12 +37,22 @@ export const BigScreen: React.FC = () => {
   const params = useSearchParams();
   const code = (params.get('code') ?? '').trim().toUpperCase();
 
+  const live = useLiveScreenState(code || null);
   const synced = useScreenRoomState(code || null);
 
   const state = useMemo(() => {
     if (!code) return null;
+    // Live Supabase room is the source of truth when present.
+    if (live.status === 'ready') return live.state;
+    // Supabase configured but still resolving or the room is gone: prefer a
+    // same-machine localStorage frame if one exists, else show the waiting card
+    // rather than fabricating a mock room.
+    if (live.status === 'loading' || live.status === 'not_found') {
+      return synced ?? readScreenState(code);
+    }
+    // No Supabase env: demo/preview path.
     return synced ?? readScreenState(code) ?? defaultState(code);
-  }, [code, synced]);
+  }, [code, live, synced]);
 
   if (!code) {
     return (
