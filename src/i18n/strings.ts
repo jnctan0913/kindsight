@@ -38,6 +38,8 @@ const en = {
   'player.briefing.slide1.title': 'Write kind notes',
   'player.briefing.slide1.body':
     "You'll write short, anonymous notes about the people here. Kind and specific beats long.",
+  'player.briefing.mode.a': 'Round robin',
+  'player.briefing.mode.b': 'Free select',
   'player.briefing.slide2a.title': 'We pick who you write to',
   'player.briefing.slide2a.body':
     'Each round hands you one person. Rotation keeps every wall even.',
@@ -46,7 +48,7 @@ const en = {
     "Choose anyone on the roster. Names you've written to get a check.",
   'player.briefing.slide3.title': 'At the end, the walls open',
   'player.briefing.slide3.body':
-    'Everyone opens their own wall of notes and reads it one note at a time.',
+    'Everyone opens their own wall of notes at once, then reads through them slowly.',
   'player.briefing.anonymity':
     'Your notes are anonymous. No one, including the host, will ever see your name on a note.',
   'player.briefing.footer': 'The host starts the writing round.',
@@ -420,6 +422,8 @@ const zh: Record<StringKey, string> = {
   'player.briefing.slide1.title': '写下善意的便签',
   'player.briefing.slide1.body':
     '你将为在场的人写下简短的匿名便签。具体的善意，胜过冗长的客套。',
+  'player.briefing.mode.a': '轮流分配',
+  'player.briefing.mode.b': '自由选择',
   'player.briefing.slide2a.title': '写给谁，由系统安排',
   'player.briefing.slide2a.body':
     '每一轮你会拿到一个对象。轮换让每个人的墙一样满。',
@@ -427,7 +431,7 @@ const zh: Record<StringKey, string> = {
   'player.briefing.slide2b.body': '从名单里任选一个人。写过的名字会有标记。',
   'player.briefing.slide3.title': '最后，一起开墙',
   'player.briefing.slide3.body':
-    '每个人都会打开属于自己的一面墙，一张一张慢慢读。',
+    '每个人都会同时打开属于自己的一面墙，再慢慢读完每一张。',
   'player.briefing.anonymity':
     '你的便签是匿名的。任何人，包括主持人，都不会在便签上看到你的名字。',
   'player.briefing.footer': '写作环节由主持人开启。',

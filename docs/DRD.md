@@ -704,3 +704,75 @@ Big screen is the only audio surface, Kahoot-style. Player phones never play mus
 - WallExportRenderer is the second spike (iOS Safari canvas). The long-press fallback is part of the v1 spec, not a nice-to-have.
 - The BrainNest `--accent-color` override (yellow to teal) restyles every reused Button and accent instantly; audit reused screens for places the yellow was load-bearing against navy (teal on navy is fine for fills, roughly 5.5:1 for large elements, but verify any small accent text).
 - RLS remains the reveal lock; the locked-wall silhouettes must be driven by a count-only query that is legal pre-reveal. The design never needs pre-reveal content on the player surface.
+
+---
+
+## 15. Player UI Redesign Delta (added 2026-07-04)
+
+This section is the design brief for bringing the pre-reveal player screens up to the fidelity the reveal ritual already ships. It supplements sections 3 to 12; nothing here changes game logic, data, RLS, the anonymity invariant, or the static-export constraints. It is a **visual and interaction refresh only**.
+
+### 15.1 Problem statement
+
+The player app (`src/app/r/`) works but reads as flat and generic. Every pre-reveal screen (Join, Claim, LobbyWait, Briefing, Write) is built from inline `style={{}}` on plain white cards with no depth, no motion beyond a single fade, and no mascot presence. The two game modes (A round-robin, B free-select) are technically branched but visually near-identical, so a player cannot feel which game they are in. Meanwhile the reveal ritual (`src/app/reveal-demo/reveal.module.scss`, reused by `RevealContent.tsx`) is fully designed: clay cards, aurora glow and shimmer, staggered motion, reduced-motion fallbacks, League Spartan numerals, mascot anchoring, accessible focus rings.
+
+### 15.2 Design reference (source of truth for fidelity)
+
+The **rehearsal page** (`/dev/reveal`, host "Preview the ritual", rendered by `RevealDemo.tsx`) is the in-code quality bar. It is the intended mockup of the player experience. All redesigned screens must match its language, not invent a new one. The BrainNest kit and DRD section 9 remain the constraints; the rehearsal is the concrete target.
+
+Rehearsal remains reveal-only in this delta. Extending it into a full-flow mockup is out of scope here.
+
+### 15.3 Foundation: shared player stylesheet
+
+Create `src/app/r/player.module.scss` (or `src/components/player.module.scss`) by lifting the established patterns from `reveal.module.scss` so the whole flow shares one language. It must define, all from existing tokens in `_variables.scss` (no new colors):
+
+- **Clay card:** off-white/white fill, radius `--radius-card` (20px), navy-tinted soft shadow (`--shadow-soft`), no hard border.
+- **Aurora ambient layer:** a subtle page-level glow behind content using the aurora gradient at low opacity and/or the `shimmer` sweep, never behind text directly. Replaces the current flat `--neon-white` void.
+- **Glow accent:** `--glow-teal` reserved for the active/selected and shared states, matching the reveal wall.
+- **Motion set:** reuse `crossfadeIn`, `noteRise` (staggered list entrance), press feedback (`scale(0.92-0.98)`), 150 to 250ms transitions on all interactive elements. Every animation ships a `prefers-reduced-motion` fallback, mirroring `reveal.module.scss`.
+- **Controls:** pill chips and frame buttons with hover, `:active` press, and `:focus-visible` 3px `--accent-deep` ring (section 11). Fills and shadows, not borders, for selection.
+- **Pinned action bar + toast** patterns matching `.pinnedBar` and `.toast`.
+- **Numerals in League Spartan** with tabular figures: room code, round counter, char counter, note counts.
+
+Screens stop using ad-hoc inline styles and consume this module. Keep `RevealContent`/`reveal.module.scss` as-is; only align tokens if they drift.
+
+### 15.4 Per-screen gap matrix and target
+
+| Screen (file) | Current | Target (this delta) |
+|---|---|---|
+| **Join** (`JoinPrompt.tsx`) | Full logo, plain pill input, flat bg | Mascot mark + wordmark per section 9 asset map, aurora ambient bg, clay code field with League Spartan, pressable CTA |
+| **Claim** (`ClaimContent.tsx`) | Flat chip wrap, dark full-width CTA | Avatar-forward RosterChips with hover/press/selected glow, clearer "Who are you?" heading, clay footer CTA |
+| **You're in** (new, split from `LobbyWait`) | Missing (lobby uses `empty-lobby-soft.png`) | Add the DRD "You're in, {name}" mascot card immediately after claim (section 9 asset map, COPY 2) |
+| **LobbyWait** (`LobbyWait.tsx`) | `empty-lobby-soft.png` illustration | Mascot-anchored waiting card, aurora ambient, calm copy; keep `aria-live` phase announce |
+| **Briefing** (`BriefingContent.tsx`) | 3-slide swiper, flat frame cards, weak mode cue | Refreshed clay slides; **slide 2 visibly mode-specific** (see 15.5); fix slide-3 copy (see 15.6); share `lib/briefingContent.ts` instead of duplicating frame data |
+| **Write A** (`WriteContent.tsx`, `round_robin`) | Plain assigned-name card, text-only round line, basic nudge | TargetBanner: avatar disc + name in a clay card; round indicator as an aurora progress bar; fuller soft-validator hints (section 4); distinct "assigned to you" identity |
+| **Write B** (`WriteContent.tsx`, `free_select`) | Flat chip wrap inline | "Who will you write to?" framed picker with written/coverage state and glow-on-select; distinct "you choose" identity; same clay composer |
+| **Composer** (shared in Write) | Bare textarea, counter | Clay textarea with focus ring, frame pills matching `.framePill`, empty-state uses `empty-notes-soft.png` (section 9 asset map, currently unwired) |
+| **Ended** (`EndedCard.tsx`) | `empty-lobby-soft.png` | Mascot per section 9 asset map, clay card, calm close copy |
+| **Reveal / Wall** (`RevealContent.tsx`) | Already the bar | No redesign; only token alignment if needed |
+
+### 15.5 Mode A vs Mode B differentiation (explicit)
+
+The modes must be legible at a glance. The difference is expressed through layout and identity, not new logic.
+
+- **Briefing slide 2:**
+  - Mode A (`round_robin`): "We pick who you write to." Use `onboarding-rotate-transparent.png`, a rotation/hand-off motif, and language that signals assignment and even walls.
+  - Mode B (`free_select`): "You pick who you write to." Use a roster/free-pick motif and language that signals choice; written names get a check.
+- **Write screen:**
+  - Mode A leads with the **assigned TargetBanner** (avatar disc + name, "Write to {name}") and a round progress bar. No roster picker. Identity: a guided, paced round.
+  - Mode B leads with the **"Who will you write to?" picker** (roster chips, written/coverage state), then reveals the composer on selection. Identity: self-directed choice.
+- Copy already exists for both (`player.briefing.slide2a/2b`, `player.write.to.assigned`, `player.write.to.label`, `player.write.written`, `player.write.round`). No new mode logic; the store already carries `mode`.
+
+### 15.6 Copy alignment
+
+- Briefing slide 3 body still says notes open "one note at a time" (COPY 3 / `player.briefing.*`), which contradicts the shipped full-wall cascade (section 9.1). Update the string to describe the full wall opening at once, in both EN and ZH, and reflect in `docs/COPY.md`.
+
+### 15.7 Mascot decision
+
+No mascot generation required. The shipped set (`kindsight-mascot-only.png`, pose variants, `avatar-01`..`15`) is sufficient and matches the DRD character. This delta only wires existing assets onto Join, You're-in, LobbyWait, and Ended per the section 9 asset map, and uses the existing `empty-notes-soft.png` for the composer empty state. `mascot_run.png` is a dead duplicate of `mascot-run.png` and can be removed.
+
+### 15.8 Invariants preserved
+
+- Anonymity: no note content or author-adjacent data added to any pre-reveal screen.
+- Static export: no routes, server actions, or dynamic segments added.
+- i18n: every new or changed string ships EN and ZH; numerals stay Latin in League Spartan.
+- Accessibility (section 11): 44px targets, focus rings, reduced-motion fallbacks, visible labels, `aria-live` phase announcements retained.
