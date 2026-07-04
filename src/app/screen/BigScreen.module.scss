@@ -137,9 +137,28 @@
   transform: scale(1.05);
 }
 
+.avatarWall {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(8px, 1vw, 16px);
+  justify-content: center;
+  margin-top: 3vh;
+  max-width: 900px;
+}
+
+.avatarTile {
+  width: clamp(44px, 4.4vw, 76px);
+  height: clamp(44px, 4.4vw, 76px);
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.avatarGhost {
+  background: rgba(30, 37, 56, 0.12);
+}
+
 .briefingFrames {
-  grid-column: 2;
-  grid-row: 2;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: clamp(12px, 1.35vw, 22px);
@@ -179,11 +198,22 @@
   object-fit: contain;
 }
 
-.briefingCopy {
+/* Right column: copy + frames/note, centered vertically as one block against
+   the left visual. */
+.briefingRight {
   grid-column: 2;
-  grid-row: 1;
-  align-self: end;
+  grid-row: 1 / span 2;
+  align-self: center;
   justify-self: start;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(16px, 2.6vh, 34px);
+  width: 100%;
+}
+
+.briefingCopy {
   max-width: 900px;
 }
 
@@ -242,10 +272,6 @@
 }
 
 .briefingNote {
-  grid-column: 2;
-  grid-row: 2;
-  align-self: start;
-  justify-self: start;
   width: min(100%, 760px);
   border-radius: var(--radius-card);
   background: rgba(255, 255, 255, 0.88);

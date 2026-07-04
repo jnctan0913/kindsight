@@ -46,6 +46,7 @@ export const LanguageToggle: React.FC = () => {
               alignItems: 'center',
               justifyContent: 'center',
               lineHeight: 1,
+              whiteSpace: 'nowrap',
               fontSize: 14,
               fontWeight: 600,
               fontFamily: 'var(--font-dosis), var(--font-noto-sc), sans-serif',
