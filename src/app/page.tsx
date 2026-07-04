@@ -51,7 +51,7 @@ export default function Home() {
         Open the reveal demo
       </Link>
       <Link
-        href={`${Routes.JOIN}/?code=KIND01`}
+        href={Routes.JOIN}
         style={{
           padding: '16px 32px',
           borderRadius: 'var(--radius-control)',
@@ -62,7 +62,7 @@ export default function Home() {
           fontFamily: 'var(--font-league-spartan)',
         }}
       >
-        Open the join flow demo
+        Join a room
       </Link>
       <Link
         href={Routes.HOST}

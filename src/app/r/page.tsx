@@ -1,16 +1,16 @@
 import React, {Suspense} from 'react';
 import type {Metadata} from 'next';
 
-import {JoinScreen} from './JoinScreen';
+import {PlayerFlow} from './PlayerFlow';
 
 export const metadata: Metadata = {
   title: 'Join a room | Kindsight',
 };
 
-export default function JoinPage() {
+export default function PlayerPage() {
   return (
     <Suspense fallback={null}>
-      <JoinScreen />
+      <PlayerFlow />
     </Suspense>
   );
 }
