@@ -72,6 +72,10 @@ export function advancePhase(p_room_id: string): Promise<RoomStateResult> {
   return rpc('advance_phase', {p_room_id});
 }
 
+export function rewindPhase(p_room_id: string): Promise<RoomStateResult> {
+  return rpc('rewind_phase', {p_room_id});
+}
+
 export function startRound(p_room_id: string): Promise<RoomStateResult> {
   return rpc('start_round', {p_room_id});
 }
@@ -133,6 +137,23 @@ export function killNote(p_note_id: string): Promise<void> {
 
 export function getModerationFeed(p_room_id: string): Promise<ModerationNote[]> {
   return rpc('get_moderation_feed', {p_room_id});
+}
+
+// --- Host lobby roster edits (lobby phase only) ---
+
+export function renameParticipant(
+  p_room_id: string,
+  p_participant_id: string,
+  p_name: string,
+): Promise<{server_now: string}> {
+  return rpc('rename_participant', {p_room_id, p_participant_id, p_name});
+}
+
+export function removeParticipant(
+  p_room_id: string,
+  p_participant_id: string,
+): Promise<{server_now: string}> {
+  return rpc('remove_participant', {p_room_id, p_participant_id});
 }
 
 // --- Assignments and reveal ---

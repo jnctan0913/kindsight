@@ -228,7 +228,7 @@ type RoomState = {
 let subscription: RoomSubscription | null = null;
 
 function applySnapshot(snapshot: Snapshot): Partial<RoomState> {
-  return {
+  const patch: Partial<RoomState> = {
     snapshot,
     roomId: snapshot.room_id,
     code: snapshot.code,
@@ -247,6 +247,13 @@ function applySnapshot(snapshot: Snapshot): Partial<RoomState> {
     me: snapshot.role === 'player' ? snapshot.me : null,
     coverage: snapshot.role === 'host' ? snapshot.coverage : null,
   };
+  // Re-hide any already-fetched wall the moment the room drops below the reveal
+  // gate (host rewind). The server re-locks get_my_wall on the live phase; clear
+  // the client copy so a stale wall can never linger on the device.
+  if (snapshot.phase !== 'reveal' && snapshot.phase !== 'wrapup') {
+    patch.wall = null;
+  }
+  return patch;
 }
 
 function messageOf(e: unknown): string {
@@ -466,9 +473,16 @@ export const useRoomStore = create<RoomState>((set, get) => ({
     }
     const roomId = get().roomId;
     if (!roomId) return [];
-    const wall = await getMyWall(roomId);
-    set({wall});
-    return wall;
+    try {
+      const wall = await getMyWall(roomId);
+      set({wall});
+      return wall;
+    } catch {
+      // get_my_wall raises once the room is below the reveal gate (host rewind).
+      // Swallow it: the phase ping routes the player off the reveal screen, and
+      // applySnapshot already cleared any stale wall.
+      return get().wall ?? [];
+    }
   },
 
   setNoteShared: async (noteId: string, shared: boolean) => {
