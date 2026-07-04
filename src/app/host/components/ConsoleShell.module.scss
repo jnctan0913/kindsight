@@ -140,14 +140,20 @@
 }
 
 .content {
-  padding: 28px;
+  padding: 28px 32px;
+  max-width: 1600px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .contentWithPanel {
-  padding: 28px;
+  padding: 28px 32px;
+  max-width: 1600px;
+  margin: 0 auto;
+  width: 100%;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 24px;
+  grid-template-columns: minmax(0, 1fr) var(--preview-w, 400px);
+  gap: 28px;
   align-items: start;
 }
 

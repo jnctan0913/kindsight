@@ -12,6 +12,8 @@ type BaseProps = {
   children: React.ReactNode;
   rightPanel?: React.ReactNode;
   primaryAction?: React.ReactNode;
+  // Preview rail width per phase (the projector iframe scales to fill it).
+  previewWidth?: number;
   onSignOut?: () => void;
   onHome?: () => void;
 };
@@ -125,6 +127,11 @@ export const ConsoleShell: React.FC<Props> = (props) => {
           <main
             className={
               hasPreview && previewOpen ? styles.contentWithPanel : styles.content
+            }
+            style={
+              hasPreview && previewOpen
+                ? ({'--preview-w': `${props.previewWidth ?? 400}px`} as React.CSSProperties)
+                : undefined
             }
           >
             <div className={styles.primaryContent}>{props.children}</div>

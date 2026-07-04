@@ -574,6 +574,11 @@ export const HostConsole: React.FC = () => {
 
   const phase = stepToPhase[step];
 
+  // The projector is a co-star while the room looks at it (lobby QR, briefing
+  // slide) and a monitor while the host works the feed (writing, wrap-up).
+  const previewWidth =
+    step === 'lobby' ? 660 : step === 'briefing' ? 560 : step === 'wrapup' ? 480 : 400;
+
   // Live room drives the dashboard from the host snapshot + moderation feed;
   // mock/demo mode keeps the scripted data.
   const liveCoverage = hostSnap ? coverageFromSnapshot(hostSnap) : MOCK_COVERAGE;
@@ -597,6 +602,7 @@ export const HostConsole: React.FC = () => {
       phase={phase}
       playerCount={playerCount}
       noteCount={notes.length}
+      previewWidth={previewWidth}
       onHome={() => setStep('hub')}
       onSignOut={() => void handleSignOut()}
       rightPanel={
