@@ -6,6 +6,15 @@ export type RoomPhase = 'lobby' | 'briefing' | 'writing' | 'reveal' | 'wrapup';
 export type NoteFrame = 'moment' | 'strength' | 'wish';
 export type RevealState = 'locked' | 'holding' | 'reading' | 'done';
 
+// list_host_rooms: room-level metadata for the caller's own live rooms (no notes).
+export type HostRoomEntry = {
+  code: string;
+  phase: RoomPhase;
+  created_at: string;
+  expires_at: string;
+  roster_size: number;
+};
+
 // kindsight_room_public: the public subset present in every snapshot-like return.
 export type RoomPublic = {
   room_id: string;

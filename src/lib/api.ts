@@ -15,6 +15,7 @@ import type {
   ModerationNote,
   MyAssignment,
   BigscreenState,
+  HostRoomEntry,
 } from './types';
 
 export class ApiError extends Error {
@@ -56,6 +57,12 @@ export function createRoom(params: {
 
 export function joinRoom(p_code: string): Promise<JoinRoomResult> {
   return rpc('join_room', {p_code});
+}
+
+// The caller's own live rooms, newest first (server-side, so sessions follow the
+// host account across devices/origins rather than living only in localStorage).
+export function listHostRooms(): Promise<HostRoomEntry[]> {
+  return rpc('list_host_rooms');
 }
 
 export function claimName(p_participant_id: string): Promise<ClaimNameResult> {

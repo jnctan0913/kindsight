@@ -13,6 +13,7 @@ import {
   getSnapshot,
   joinRoom,
   killNote,
+  listHostRooms,
   removeParticipant,
   renameParticipant,
   rewindPhase,
@@ -25,6 +26,7 @@ import {
   readScreenState,
   removeActiveRoom,
   upsertActiveRoom,
+  type ActiveRoomEntry,
   type ScreenRoomState,
   type ScreenPhase,
 } from '../../lib/hostRoomSync';
@@ -233,9 +235,38 @@ export const HostConsole: React.FC = () => {
     return onHostAuthChange(setHostSession);
   }, []);
 
-  const refreshActiveRooms = useCallback(() => {
-    setActiveRooms(listActiveRooms());
+  // On the live path the host's rooms live in Postgres (host_id = the account),
+  // so the hub follows the account across devices/origins instead of only this
+  // browser's localStorage. Cache each into localStorage (oldest first so the
+  // newest ends up at the front) for instant first paint and offline fallback.
+  const syncHostRoomsFromDb = useCallback(async () => {
+    if (isHostAuthMockMode()) return;
+    try {
+      const rows = await listHostRooms();
+      const mapped: ActiveRoomEntry[] = rows.map((r) => ({
+        code: r.code,
+        phase: r.phase,
+        createdAt: r.created_at,
+        rosterSize: r.roster_size,
+      }));
+      setActiveRooms(mapped);
+      [...mapped].reverse().forEach(upsertActiveRoom);
+    } catch {
+      setActiveRooms(listActiveRooms());
+    }
   }, []);
+
+  const refreshActiveRooms = useCallback(() => {
+    if (!isHostAuthMockMode()) {
+      void syncHostRoomsFromDb();
+      return;
+    }
+    setActiveRooms(listActiveRooms());
+  }, [syncHostRoomsFromDb]);
+
+  useEffect(() => {
+    if (hostSession && !isHostAuthMockMode()) void syncHostRoomsFromDb();
+  }, [hostSession, syncHostRoomsFromDb]);
 
   const buildScreenState = useCallback(
     (currentStep: Step, triggered: boolean, highlight: boolean): ScreenRoomState | null => {
