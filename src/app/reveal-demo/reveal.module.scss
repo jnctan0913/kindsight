@@ -393,7 +393,7 @@
 
 .pinnedBar {
   position: fixed;
-  bottom: 52px; /* clears the demo dev row */
+  bottom: 0; /* flush to the bottom of the screen / phone frame */
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
