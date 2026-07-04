@@ -361,7 +361,7 @@ const en = {
 
   'host.preview.title': 'Player preview',
   'host.preview.subtitle':
-    'Walk the player experience on screen to explain or check it. Nothing here is live \u2014 it is the exact screens players see.',
+    'Walk the full player flow on screen to explain or check it. Nothing here is live. These are the exact screens players see.',
   'host.preview.mode.a': 'Mode A \u00b7 Assigned',
   'host.preview.mode.b': 'Mode B \u00b7 Free pick',
   'host.preview.prev': 'Back',
@@ -730,7 +730,7 @@ const zh: Record<StringKey, string> = {
 
   'host.preview.title': '玩家预览',
   'host.preview.subtitle':
-    '在屏幕上走一遍玩家的完整体验，用于讲解或检查。这里的一切都不是真实房间——它就是玩家看到的真实界面。',
+    '在屏幕上走一遍完整的玩家流程，用于讲解或检查。这里的一切都不是真实房间，只是玩家看到的真实界面。',
   'host.preview.mode.a': '模式 A · 指派',
   'host.preview.mode.b': '模式 B · 自由选择',
   'host.preview.prev': '上一步',
