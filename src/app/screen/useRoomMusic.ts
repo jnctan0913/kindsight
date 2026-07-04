@@ -75,7 +75,7 @@ export type RoomMusic = {
 
 // Big-screen music engine. The big screen is the only speaker; the console
 // remote-commands it over the music channel. Volume + mute are device-local.
-export function useRoomMusic(state: ScreenRoomState | null): RoomMusic {
+export function useRoomMusic(state: ScreenRoomState | null, preview = false): RoomMusic {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fadeRef = useRef<number | null>(null);
   const [armed, setArmed] = useState(false);
@@ -94,8 +94,10 @@ export function useRoomMusic(state: ScreenRoomState | null): RoomMusic {
   const track = playlist.length ? playlist[trackIndex % playlist.length] : null;
   const inReveal = phase === 'reveal' || Boolean(state?.revealTriggered);
   const hasTrack = Boolean(track);
-  const showControls = musicOn && !inReveal && hasTrack;
-  const active = armed && musicOn && !inReveal && hasTrack && !pausedByUser;
+  // Preview iframe mirrors the screen but is never a speaker: no controls, no
+  // playback, no remote channel.
+  const showControls = musicOn && !inReveal && hasTrack && !preview;
+  const active = armed && musicOn && !inReveal && hasTrack && !pausedByUser && !preview;
 
   useEffect(() => {
     const a = new Audio();
@@ -206,7 +208,7 @@ export function useRoomMusic(state: ScreenRoomState | null): RoomMusic {
   // Obey remote transport commands from the console (keyed on the room code so
   // both windows share the channel without needing the room uuid).
   useEffect(() => {
-    if (!code || !isSupabaseConfigured()) return;
+    if (preview || !code || !isSupabaseConfigured()) return;
     const ch = subscribeMusic(code, (c: MusicCommand) => {
       if (c.cmd === 'playpause') togglePlay();
       else if (c.cmd === 'skip') skip();
@@ -216,7 +218,7 @@ export function useRoomMusic(state: ScreenRoomState | null): RoomMusic {
       } else if (c.cmd === 'volume') setVolume(c.value);
     });
     return () => ch.unsubscribe();
-  }, [code, togglePlay, skip, setVolume]);
+  }, [preview, code, togglePlay, skip, setVolume]);
 
   return {
     hasTrack,

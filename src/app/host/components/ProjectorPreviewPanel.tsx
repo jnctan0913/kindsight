@@ -35,7 +35,7 @@ export const ProjectorPreviewPanel: React.FC<Props> = ({state, onOpenBigScreen})
     return () => ro.disconnect();
   }, []);
 
-  const src = state?.code ? bigScreenUrl(state.code) : null;
+  const src = state?.code ? bigScreenUrl(state.code, {preview: true}) : null;
 
   return (
     <div style={{...consoleCard, padding: 18}}>

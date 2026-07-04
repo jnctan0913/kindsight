@@ -39,6 +39,9 @@ export const BigScreen: React.FC = () => {
   const t = useT();
   const params = useSearchParams();
   const code = (params.get('code') ?? '').trim().toUpperCase();
+  // Embedded console preview: mirror the screen but stay silent (no arm overlay,
+  // no transport, no music channel).
+  const preview = params.get('preview') === '1';
 
   const live = useLiveScreenState(code || null);
   const synced = useScreenRoomState(code || null);
@@ -68,7 +71,7 @@ export const BigScreen: React.FC = () => {
     return synced ?? defaultState(code);
   }, [code, live, synced]);
 
-  const music = useRoomMusic(state);
+  const music = useRoomMusic(state, preview);
 
   if (!code) {
     return (
@@ -91,10 +94,10 @@ export const BigScreen: React.FC = () => {
   return (
     <div
       style={{position: 'relative', minHeight: '100dvh'}}
-      onClick={music.showControls && !music.armed ? music.arm : undefined}
+      onClick={!preview && music.showControls && !music.armed ? music.arm : undefined}
     >
       <ProjectorView state={state} />
-      <MusicControls music={music} musicOn={state.musicOn} revealing={revealing} />
+      {!preview && <MusicControls music={music} musicOn={state.musicOn} revealing={revealing} />}
     </div>
   );
 };
