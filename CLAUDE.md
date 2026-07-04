@@ -173,6 +173,7 @@ cd .claude/skills/gstack && ./setup
 |-------|-------------|---------|
 | Design | `/designer` | DRD creation |
 | System | `/design-consultation` | Design system guidance |
+| Taste rules | `/design-taste` | Framework-agnostic anti-slop rule catalog + pre-flight checklist. Consult before shipping any `.html` and during `/design-review` / `/design-html`. |
 | Audit | `/plan-design-review` | Audit plan before build |
 
 ### BUILD PHASE
@@ -184,6 +185,8 @@ cd .claude/skills/gstack && ./setup
 | Frontend | `/frontend-developer` | React/Vue/Angular UI. Lighthouse >90, WCAG AA |
 | Scope lock | `/freeze` | Lock scope during complex changes |
 | Review | `/review` | Code review gate before every commit |
+| Anti-slop check | `/design-taste` | Run the anti-slop pre-flight checklist before shipping any `.html` deliverable. Framework-agnostic (decks, static apps, pages). |
+| Redesign existing | `/redesign-existing-projects` | Audit-first upgrade of an existing HTML/CSS/Bootstrap project without migrating frameworks. |
 | Print parity | `/print-parity` | Make any HTML slide deck print to PDF pixel-matched to the on-screen view. Required pre-ship gate for any `.html` deliverable. |
 | HTML to PPTX | `/html-to-pptx` | Convert a print-parity-clean HTML deck to an editable `.pptx`. Runs after `/print-parity`. |
 
