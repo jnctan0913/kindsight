@@ -1,11 +1,13 @@
 'use client';
 
 import React, {useEffect, useRef, useState} from 'react';
+import Link from 'next/link';
 
 import {useT} from '../../../i18n';
 import type {StringKey} from '../../../i18n';
 import {useRoomStore, type DemoStep} from '../../../stores/room';
 import type {RoomMode} from '../../../lib/types';
+import {Routes} from '../../../routes';
 import {dosisFont} from './hostStyles';
 import styles from './PlayerPreview.module.scss';
 
@@ -155,6 +157,31 @@ export const PlayerPreview: React.FC<Props> = ({initialStep = 'lobby', initialMo
 
       {/* Right: the control panel */}
       <div className={styles.panel}>
+        <Link
+          href={Routes.HOST}
+          className='clickable pressable'
+          style={{
+            alignSelf: 'flex-start',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '7px 14px',
+            borderRadius: 'var(--radius-pill)',
+            border: '1px solid var(--border-color)',
+            backgroundColor: 'var(--white-color)',
+            color: 'var(--main-color)',
+            fontFamily: dosisFont,
+            fontSize: 13,
+            fontWeight: 700,
+            textDecoration: 'none',
+          }}
+        >
+          <span aria-hidden='true' style={{fontSize: 16, lineHeight: 1}}>
+            &#8592;
+          </span>
+          {t('host.hub.home')}
+        </Link>
+
         <div className={styles.header}>
           <h2 style={{fontFamily: dosisFont}}>{t('host.preview.title')}</h2>
           <p className='t14' style={{marginTop: 6}}>
