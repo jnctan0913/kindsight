@@ -176,9 +176,9 @@ const en = {
   'host.hub.start.body':
     'Create a room, paste the roster, and open the lobby when players arrive.',
   'host.hub.start.cta': 'Create room',
-  'host.hub.rehearse.title': 'Rehearse the ritual',
+  'host.hub.rehearse.title': 'Rehearse the player flow',
   'host.hub.rehearse.body':
-    'Private preview with fake notes. Practice the three-breath reveal before a real session.',
+    'Private walkthrough of every player screen with sample data, from join to the three-breath reveal. Practice before a real session.',
   'host.hub.rehearse.cta': 'Open rehearsal',
   'host.hub.reopen.title': 'Reopen a room',
   'host.hub.reopen.body': 'Return to an active room you are hosting on this account.',
@@ -551,8 +551,8 @@ const zh: Record<StringKey, string> = {
   'host.hub.start.title': '开始新游戏',
   'host.hub.start.body': '创建房间、粘贴名单，玩家到场后进入大厅。',
   'host.hub.start.cta': '创建房间',
-  'host.hub.rehearse.title': '彩排揭晓仪式',
-  'host.hub.rehearse.body': '使用假便签的私人预览。在正式活动前练习三次呼吸的开墙流程。',
+  'host.hub.rehearse.title': '彩排玩家流程',
+  'host.hub.rehearse.body': '用示例数据私下走一遍每个玩家界面，从加入到三次呼吸的开墙。正式活动前先练习一次。',
   'host.hub.rehearse.cta': '打开彩排',
   'host.hub.reopen.title': '重新打开房间',
   'host.hub.reopen.body': '返回你在此账号下进行中的房间。',

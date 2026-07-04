@@ -4,9 +4,11 @@
 
 /* ---- Aurora ambient background ----
    Drop <div className={styles.aura} aria-hidden /> once inside each Screen.
-   A fixed, low-opacity glow over the off-white base; never behind text. */
+   A low-opacity glow over the off-white base; never behind text. Absolute so it
+   fills the app column (#app is positioned) on /r and stays inside the phone
+   frame in the host rehearsal preview. */
 .aura {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: -1;
   pointer-events: none;
