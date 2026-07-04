@@ -1,83 +1,19 @@
-import React from 'react';
-import Link from 'next/link';
+import React, {Suspense} from 'react';
+import type {Metadata} from 'next';
 
-import {asset} from '../config';
-import {Routes} from '../routes';
+import {PlayerFlow} from './r/PlayerFlow';
 
+export const metadata: Metadata = {
+  title: 'Kindsight',
+  description: 'The light behind you',
+};
+
+// The base route is the player entry point: a returning player resumes their
+// session, and a new player sees the join screen with a secondary host entry.
 export default function Home() {
   return (
-    <main
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 16,
-        minHeight: '100dvh',
-        padding: 24,
-        textAlign: 'center',
-        backgroundColor: 'var(--neon-white)',
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
-        <img
-          src={asset('/assets/kindsight/kindsight-logo-transparent.png')}
-          alt='Kindsight'
-          style={{width: '60%', maxWidth: 280, height: 'auto'}}
-        />
-        <p className='t16' style={{color: 'var(--text-color)', marginTop: 2}}>
-          The light behind you
-        </p>
-      </div>
-      <Link
-        href={Routes.REVEAL_DEMO}
-        style={{
-          marginTop: 24,
-          padding: '16px 32px',
-          borderRadius: 'var(--radius-control)',
-          backgroundColor: 'var(--main-color)',
-          boxShadow: 'var(--glow-teal), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
-          color: 'var(--neon-white)',
-          fontSize: 18,
-          fontFamily: 'var(--font-league-spartan)',
-        }}
-      >
-        Open the reveal demo
-      </Link>
-      <Link
-        href={Routes.JOIN}
-        style={{
-          padding: '16px 32px',
-          borderRadius: 'var(--radius-control)',
-          backgroundColor: 'var(--main-color)',
-          boxShadow: 'var(--glow-teal), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
-          color: 'var(--neon-white)',
-          fontSize: 18,
-          fontFamily: 'var(--font-league-spartan)',
-        }}
-      >
-        Join a room
-      </Link>
-      <Link
-        href={Routes.HOST}
-        style={{
-          padding: '16px 32px',
-          borderRadius: 'var(--radius-control)',
-          backgroundColor: 'var(--main-color)',
-          boxShadow: 'var(--glow-teal), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
-          color: 'var(--neon-white)',
-          fontSize: 18,
-          fontFamily: 'var(--font-league-spartan)',
-        }}
-      >
-        Open the host console demo
-      </Link>
-    </main>
+    <Suspense fallback={null}>
+      <PlayerFlow />
+    </Suspense>
   );
 }

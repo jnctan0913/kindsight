@@ -1,10 +1,12 @@
 'use client';
 
 import React, {useEffect, useState} from 'react';
+import Link from 'next/link';
 
 import {asset} from '@/config';
 import {components} from '@/components';
 import {LanguageToggle, useT} from '@/i18n';
+import {Routes} from '@/routes';
 import type {StringKey} from '@/i18n';
 import type {JoinFailure} from '@/stores/room';
 
@@ -112,6 +114,7 @@ export const JoinPrompt: React.FC<Props> = ({initialCode, failure, onJoin}) => {
               boxShadow: 'var(--shadow-soft)',
               textAlign: 'center',
               fontSize: 28,
+              lineHeight: '64px',
               letterSpacing: '0.25em',
               fontFamily: 'var(--font-league-spartan), var(--font-noto-sc), sans-serif',
               color: 'var(--main-color)',
@@ -145,6 +148,7 @@ export const JoinPrompt: React.FC<Props> = ({initialCode, failure, onJoin}) => {
             label={submitting ? t('player.write.sending') : t('player.join.cta')}
             onClick={() => void submit()}
             colorScheme='secondary'
+            disabled={code.length < 6 || submitting}
             containerStyle={{marginTop: 24}}
             style={{
               textTransform: 'none',
@@ -153,6 +157,34 @@ export const JoinPrompt: React.FC<Props> = ({initialCode, failure, onJoin}) => {
             }}
           />
         </form>
+
+        <div style={{marginTop: 'auto', paddingTop: 32, width: '100%', maxWidth: 400}}>
+          <Link
+            href={Routes.HOST}
+            className='clickable'
+            style={{
+              height: 52,
+              width: '100%',
+              borderRadius: 999,
+              border: '1px solid var(--border-color)',
+              backgroundColor: 'var(--white-color)',
+              boxShadow: 'var(--shadow-soft)',
+              color: 'var(--main-color)',
+              display: 'flex',
+              alignItems: 'center',
+              boxSizing: 'border-box',
+              justifyContent: 'center',
+              fontFamily: 'var(--font-dosis), var(--font-noto-sc), sans-serif',
+              fontSize: 16,
+              fontWeight: 700,
+              lineHeight: 1,
+              padding: '0 16px',
+              textAlign: 'center',
+            }}
+          >
+            {t('player.join.hostSignIn')}
+          </Link>
+        </div>
       </main>
     </components.Screen>
   );

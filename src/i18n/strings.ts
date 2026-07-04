@@ -18,6 +18,7 @@ const en = {
   'player.join.code.label': 'Room code',
   'player.join.code.placeholder': '6 characters',
   'player.join.cta': 'Join',
+  'player.join.hostSignIn': 'Host sign in',
   'player.join.error.badCode':
     "That code doesn't match a live room. Check the big screen.",
   'player.join.error.ended':
@@ -138,6 +139,72 @@ const en = {
 
   'host.demo.link': 'Open the host console demo',
 
+  'host.login.title': 'Host account',
+  'host.login.subtitle':
+    'Sign in or create an account to run sessions and reopen active games from any device.',
+  'host.login.mockHint':
+    'Demo mode: enter any email and a 6+ character password. Supabase is not configured in this build.',
+  'host.login.mode.label': 'Host account mode',
+  'host.login.mode.signIn': 'Sign in',
+  'host.login.mode.signUp': 'Create account',
+  'host.login.email.label': 'Email',
+  'host.login.email.placeholder': 'you@company.com',
+  'host.login.password.label': 'Password',
+  'host.login.password.placeholder': '6+ characters',
+  'host.login.confirmPassword.label': 'Confirm password',
+  'host.login.confirmPassword.placeholder': 'Repeat password',
+  'host.login.busy': 'Working...',
+  'host.login.signInCta': 'Sign in',
+  'host.login.signUpCta': 'Create account',
+  'host.login.error.passwordLength': 'Password must be at least {count} characters.',
+  'host.login.error.passwordMismatch': 'Passwords do not match.',
+  'host.login.signOut': 'Sign out',
+  'host.login.error.generic': 'Sign-in failed. Try again.',
+
+  'host.hub.title': 'Host console',
+  'host.hub.subtitle': 'Signed in as {email}. Choose what you need before the room goes live.',
+  'host.hub.sidebar': 'Console',
+  'host.hub.sidebarHint': 'Pick an action',
+  'host.hub.home': 'Back to home',
+  'host.hub.start.title': 'Start a new game',
+  'host.hub.start.body':
+    'Create a room, paste the roster, and open the lobby when players arrive.',
+  'host.hub.start.cta': 'Create room',
+  'host.hub.rehearse.title': 'Rehearse the ritual',
+  'host.hub.rehearse.body':
+    'Private preview with fake notes. Practice the three-breath reveal before a real session.',
+  'host.hub.rehearse.cta': 'Open rehearsal',
+  'host.hub.reopen.title': 'Reopen a room',
+  'host.hub.reopen.body': 'Return to an active room you are hosting on this account.',
+  'host.hub.reopen.empty': 'No active rooms yet. Start a new game to create one.',
+  'host.hub.reopen.open': 'Open',
+  'host.hub.reopen.players': '{count} players',
+  'host.hub.bigscreen.title': 'Big screen',
+  'host.hub.bigscreen.body':
+    'Open the projector tab in a new window. Drag it to the display or screen-share just that tab.',
+  'host.hub.bigscreen.open': 'Open big screen · {code}',
+
+  'host.bigscreen.open': 'Open big screen tab',
+  'host.projectorPreview.title': 'Big screen preview',
+  'host.projectorPreview.subtitle':
+    'This mirrors the projector tab for the current room state.',
+  'host.projectorPreview.open': 'Open big screen',
+
+  'screen.missingCode': 'Add ?code= to the URL to connect this display to a room.',
+  'screen.waiting': 'Waiting for the host console…',
+  'screen.lobby.joinAt': 'Join at',
+  'screen.lobby.roomCode': 'Room code',
+  'screen.lobby.progress': '{claimed} of {total} people are in',
+  'screen.lobby.ticker': '{name} just joined',
+  'screen.briefing.title': 'Write kind, specific notes',
+  'screen.briefing.frame': 'Briefing {n} of {total}',
+  'screen.briefing.rules':
+    'Three frames only. Anonymous forever. Specific beats nice every time.',
+  'screen.writing.title': 'Writing round {n} of {total}',
+  'screen.writing.notes': '{count} notes written',
+  'screen.reveal.interstitial': 'Look at your phone. Take three breaths.',
+  'screen.highlight.title': 'Shared from the room',
+
   'host.create.title': 'Create a room',
   'host.create.mode.label': 'Writing mode',
   'host.create.mode.rr': 'Round-robin',
@@ -151,6 +218,7 @@ const en = {
   'host.create.tinyGroup':
     'Rotation anonymity weakens under 6 players. We recommend Free select or extra shuffling.',
   'host.create.cta': 'Create room',
+  'host.create.rehearsal': 'Preview the reveal ritual (rehearsal)',
 
   'host.roster.title': 'Roster',
   'host.roster.add.label': 'Add a name',
@@ -163,6 +231,7 @@ const en = {
   'host.roster.remove': 'Remove',
   'host.roster.count': '{count} names',
   'host.roster.continue': 'Open the lobby',
+  'host.roster.creating': 'Creating room...',
 
   'host.lobby.title': 'Lobby',
   'host.lobby.counter': '{claimed} of {total} claimed',
@@ -202,6 +271,13 @@ const en = {
   'host.briefing.advance': 'Start writing',
   'host.briefing.body':
     'Players are reading the briefing on their phones. Start writing when the room is ready.',
+  'host.briefing.frame': 'Big screen frame {n} of {total}',
+  'host.briefing.prev': 'Previous',
+  'host.briefing.next': 'Next',
+  'host.briefing.openScreen': 'Open big screen',
+  'host.briefing.projector.title': 'Big screen preview',
+  'host.briefing.projector.subtitle':
+    'This mirrors the projector tab. Use Previous and Next to control what the room sees.',
 
   'host.mod.title': 'Moderation',
   'host.mod.to': 'To: {name}',
@@ -241,6 +317,32 @@ const en = {
 
   'host.ended.title': 'This room has closed.',
   'host.ended.body': 'Your exported wall is yours to keep.',
+
+  'host.preview.title': 'Player preview',
+  'host.preview.subtitle':
+    'Walk the player experience on screen to explain or check it. Nothing here is live \u2014 it is the exact screens players see.',
+  'host.preview.mode.a': 'Mode A \u00b7 Assigned',
+  'host.preview.mode.b': 'Mode B \u00b7 Free pick',
+  'host.preview.prev': 'Back',
+  'host.preview.next': 'Next',
+  'host.preview.step.join': 'Join',
+  'host.preview.step.claim': 'Claim',
+  'host.preview.step.lobby': 'Lobby',
+  'host.preview.step.briefing': 'Briefing',
+  'host.preview.step.write': 'Write',
+  'host.preview.step.reveal': 'Reveal',
+  'host.preview.cap.join':
+    'The player opens the room link and enters the 6-character code from the big screen.',
+  'host.preview.cap.claim':
+    'They tap their own name from the roster. Names already taken are greyed out.',
+  'host.preview.cap.lobby':
+    'Claimed in, they wait here until you start the session.',
+  'host.preview.cap.briefing':
+    'A short primer on the three frames and how targets are chosen (the copy differs by mode).',
+  'host.preview.cap.write':
+    'The composer. Mode A shows their assigned person; Mode B lets them pick anyone and read what that person already has.',
+  'host.preview.cap.reveal':
+    'The three-breath unlock, then their private wall of notes with per-note share toggles and image export.',
 } as const;
 
 export type StringKey = keyof typeof en;
@@ -263,6 +365,7 @@ const zh: Record<StringKey, string> = {
   'player.join.code.label': '房间码',
   'player.join.code.placeholder': '6 位房间码',
   'player.join.cta': '加入',
+  'player.join.hostSignIn': '主持人登录',
   'player.join.error.badCode': '没有找到这个房间。对照大屏幕上的房间码再试一次。',
   'player.join.error.ended': '这个房间已经结束了。请向主持人要新的房间码。',
   'player.join.error.full': '名单上的名字都被认领了。找主持人确认一下。',
@@ -373,6 +476,66 @@ const zh: Record<StringKey, string> = {
 
   'host.demo.link': '打开主持人控制台演示',
 
+  'host.login.title': '主持人账号',
+  'host.login.subtitle': '登录或创建账号后，可主持活动，并在任意设备上重新打开进行中的游戏。',
+  'host.login.mockHint': '演示模式：输入任意邮箱和至少 6 位密码即可继续。当前构建未配置 Supabase。',
+  'host.login.mode.label': '主持人账号模式',
+  'host.login.mode.signIn': '登录',
+  'host.login.mode.signUp': '创建账号',
+  'host.login.email.label': '邮箱',
+  'host.login.email.placeholder': 'you@company.com',
+  'host.login.password.label': '密码',
+  'host.login.password.placeholder': '至少 6 位',
+  'host.login.confirmPassword.label': '确认密码',
+  'host.login.confirmPassword.placeholder': '再次输入密码',
+  'host.login.busy': '处理中...',
+  'host.login.signInCta': '登录',
+  'host.login.signUpCta': '创建账号',
+  'host.login.error.passwordLength': '密码至少需要 {count} 位。',
+  'host.login.error.passwordMismatch': '两次输入的密码不一致。',
+  'host.login.signOut': '退出登录',
+  'host.login.error.generic': '登录失败，请重试。',
+
+  'host.hub.title': '主持人控制台',
+  'host.hub.subtitle': '已登录 {email}。房间开始前，先选择你要做的事。',
+  'host.hub.sidebar': '控制台',
+  'host.hub.sidebarHint': '选择操作',
+  'host.hub.home': '返回首页',
+  'host.hub.start.title': '开始新游戏',
+  'host.hub.start.body': '创建房间、粘贴名单，玩家到场后进入大厅。',
+  'host.hub.start.cta': '创建房间',
+  'host.hub.rehearse.title': '彩排揭晓仪式',
+  'host.hub.rehearse.body': '使用假便签的私人预览。在正式活动前练习三次呼吸的开墙流程。',
+  'host.hub.rehearse.cta': '打开彩排',
+  'host.hub.reopen.title': '重新打开房间',
+  'host.hub.reopen.body': '返回你在此账号下进行中的房间。',
+  'host.hub.reopen.empty': '还没有进行中的房间。先开始一场新游戏。',
+  'host.hub.reopen.open': '打开',
+  'host.hub.reopen.players': '{count} 人',
+  'host.hub.bigscreen.title': '大屏幕',
+  'host.hub.bigscreen.body':
+    '在新窗口打开投影页面。拖到显示器上，或只共享该标签页。',
+  'host.hub.bigscreen.open': '打开大屏幕 · {code}',
+
+  'host.bigscreen.open': '打开大屏幕标签页',
+  'host.projectorPreview.title': '大屏幕预览',
+  'host.projectorPreview.subtitle': '这里会同步当前房间投影标签页的画面。',
+  'host.projectorPreview.open': '打开大屏幕',
+
+  'screen.missingCode': '请在 URL 中添加 ?code= 以连接此显示与房间。',
+  'screen.waiting': '等待主持人控制台……',
+  'screen.lobby.joinAt': '加入地址',
+  'screen.lobby.roomCode': '房间码',
+  'screen.lobby.progress': '已有 {claimed} / {total} 人加入',
+  'screen.lobby.ticker': '{name} 刚加入',
+  'screen.briefing.title': '写下具体而温暖的便签',
+  'screen.briefing.frame': '说明 {n} / {total}',
+  'screen.briefing.rules': '只有三个开头。永远匿名。具体永远胜过客气。',
+  'screen.writing.title': '写作第 {n} 轮 / 共 {total} 轮',
+  'screen.writing.notes': '已写 {count} 张便签',
+  'screen.reveal.interstitial': '请看手机。深呼吸三次。',
+  'screen.highlight.title': '来自房间的分享',
+
   'host.create.title': '创建房间',
   'host.create.mode.label': '写作模式',
   'host.create.mode.rr': '轮换分配',
@@ -385,6 +548,7 @@ const zh: Record<StringKey, string> = {
   'host.create.tinyGroup':
     '少于 6 人时，轮换的匿名性会变弱。建议改用自由选择，或增加打乱次数。',
   'host.create.cta': '创建房间',
+  'host.create.rehearsal': '预览揭晓仪式（彩排）',
 
   'host.roster.title': '名单',
   'host.roster.add.label': '添加名字',
@@ -397,6 +561,7 @@ const zh: Record<StringKey, string> = {
   'host.roster.remove': '移除',
   'host.roster.count': '{count} 个名字',
   'host.roster.continue': '进入大厅',
+  'host.roster.creating': '正在创建房间……',
 
   'host.lobby.title': '大厅',
   'host.lobby.counter': '已认领 {claimed} / {total}',
@@ -435,6 +600,13 @@ const zh: Record<StringKey, string> = {
   'host.game.advanceReveal': '进入开墙',
   'host.briefing.advance': '开始写作',
   'host.briefing.body': '玩家正在手机上阅读玩法说明。准备好了就开始写作。',
+  'host.briefing.frame': '大屏幕第 {n} 页 / 共 {total} 页',
+  'host.briefing.prev': '上一页',
+  'host.briefing.next': '下一页',
+  'host.briefing.openScreen': '打开大屏幕',
+  'host.briefing.projector.title': '大屏幕预览',
+  'host.briefing.projector.subtitle':
+    '这里会同步投影标签页。用上一页和下一页控制现场看到的内容。',
 
   'host.mod.title': '内容把关',
   'host.mod.to': '写给：{name}',
@@ -473,6 +645,27 @@ const zh: Record<StringKey, string> = {
 
   'host.ended.title': '这个房间已经结束。',
   'host.ended.body': '你导出的墙，永远属于你。',
+
+  'host.preview.title': '玩家预览',
+  'host.preview.subtitle':
+    '在屏幕上走一遍玩家的完整体验，用于讲解或检查。这里的一切都不是真实房间——它就是玩家看到的真实界面。',
+  'host.preview.mode.a': '模式 A · 指派',
+  'host.preview.mode.b': '模式 B · 自由选择',
+  'host.preview.prev': '上一步',
+  'host.preview.next': '下一步',
+  'host.preview.step.join': '加入',
+  'host.preview.step.claim': '认领',
+  'host.preview.step.lobby': '等待',
+  'host.preview.step.briefing': '说明',
+  'host.preview.step.write': '书写',
+  'host.preview.step.reveal': '揭晓',
+  'host.preview.cap.join': '玩家打开房间链接，输入大屏幕上的 6 位房间码。',
+  'host.preview.cap.claim': '他们从名单中点选自己的名字。已被认领的名字会变灰。',
+  'host.preview.cap.lobby': '认领成功后，他们在这里等待你开始。',
+  'host.preview.cap.briefing': '关于三种框架以及如何选择书写对象的简短说明（文案因模式而异）。',
+  'host.preview.cap.write':
+    '书写界面。模式 A 显示系统指派的对象；模式 B 允许他们自由选人，并先读这个人已有的便签。',
+  'host.preview.cap.reveal': '三次呼吸的解锁仪式，然后是他们私人的便签墙，可逐条切换公开分享并导出图片。',
 };
 
 export const dictionaries: Record<Locale, Record<StringKey, string>> = {

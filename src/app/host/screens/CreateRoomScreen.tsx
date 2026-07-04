@@ -20,6 +20,7 @@ type Props = {
   onRoundsChange: (n: number) => void;
   onMinutesChange: (n: number) => void;
   onCreate: () => void;
+  onBack?: () => void;
 };
 
 export const CreateRoomScreen: React.FC<Props> = ({
@@ -31,6 +32,7 @@ export const CreateRoomScreen: React.FC<Props> = ({
   onRoundsChange,
   onMinutesChange,
   onCreate,
+  onBack,
 }) => {
   const t = useT();
   const tinyGroup = rosterSize < 6;
@@ -57,7 +59,24 @@ export const CreateRoomScreen: React.FC<Props> = ({
           alt='Kindsight'
           style={{width: 132, height: 'auto'}}
         />
-        <LanguageToggle />
+        <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
+          {onBack && (
+            <button
+              type='button'
+              className='clickable t14'
+              onClick={onBack}
+              style={{
+                background: 'none',
+                border: 'none',
+                textDecoration: 'underline',
+                color: 'var(--text-color)',
+              }}
+            >
+              {t('common.back')}
+            </button>
+          )}
+          <LanguageToggle />
+        </div>
       </div>
 
       <div style={{...consoleCard, maxWidth: 640, margin: '24px auto 0', padding: 28}}>

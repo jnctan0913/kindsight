@@ -14,6 +14,7 @@ type Props = {
   joinUrl: string;
   roster: HostRosterEntry[];
   onStart: () => void;
+  onOpenBigScreen?: () => void;
 };
 
 export const LobbyContent: React.FC<Props> = ({
@@ -21,6 +22,7 @@ export const LobbyContent: React.FC<Props> = ({
   joinUrl,
   roster,
   onStart,
+  onOpenBigScreen,
 }) => {
   const t = useT();
   const claimed = roster.filter((r) => r.claimed).length;
@@ -63,7 +65,7 @@ export const LobbyContent: React.FC<Props> = ({
         </div>
 
         <div style={{flex: '1 1 260px', minWidth: 240}}>
-          <QRPanel code={code} joinUrl={joinUrl} />
+          <QRPanel code={code} joinUrl={joinUrl} onOpenBigScreen={onOpenBigScreen} />
         </div>
       </div>
 

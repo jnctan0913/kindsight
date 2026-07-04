@@ -3,4 +3,5 @@ export enum Routes {
   REVEAL_DEMO = '/reveal-demo',
   JOIN = '/r',
   HOST = '/host',
+  SCREEN = '/screen',
 }

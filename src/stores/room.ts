@@ -74,6 +74,99 @@ export type SubmitReason =
 
 export type SubmitOutcome = {ok: true} | {ok: false; reason: SubmitReason; message: string};
 
+// --- Host-only demo mode -----------------------------------------------------
+// The host console can preview the *real* player screens with scripted data so a
+// facilitator can explain the flow on screen (never wired to Supabase). Every
+// network action below short-circuits when `demo` is true; the player app (/r,
+// /) never sets this flag, so its behaviour is unchanged. The whole point is a
+// 1:1 preview: these are the same screen components the player runs.
+export type DemoStep = 'join' | 'claim' | 'lobby' | 'briefing' | 'write' | 'reveal';
+
+const DEMO_ME_ID = 'demo-you';
+
+const DEMO_PEERS: ReadonlyArray<readonly [string, string]> = [
+  ['demo-amira', 'Amira'],
+  ['demo-ben', 'Ben'],
+  ['demo-chen', 'Chen'],
+  ['demo-dana', 'Dana'],
+  ['demo-mei', 'Mei'],
+  ['demo-noah', 'Noah'],
+];
+
+function demoClaimedRoster(): RosterEntry[] {
+  return [
+    ...DEMO_PEERS.map(([participant_id, display_name]) => ({
+      participant_id,
+      display_name,
+      claimed: true,
+    })),
+    {participant_id: DEMO_ME_ID, display_name: 'You', claimed: true},
+  ];
+}
+
+// A believable mid-claim roster: some names taken, a few still open to pick.
+function demoClaimRoster(): RosterEntry[] {
+  return [
+    {participant_id: 'demo-amira', display_name: 'Amira', claimed: true},
+    {participant_id: 'demo-ben', display_name: 'Ben', claimed: true},
+    {participant_id: 'demo-chen', display_name: 'Chen', claimed: true},
+    {participant_id: 'demo-dana', display_name: 'Dana', claimed: false},
+    {participant_id: 'demo-mei', display_name: 'Mei', claimed: false},
+    {participant_id: DEMO_ME_ID, display_name: 'You', claimed: false},
+  ];
+}
+
+const DEMO_WALL: MyWallNote[] = [
+  {
+    note_id: 'demo-w1',
+    frame: 'moment',
+    content:
+      'I noticed you stayed behind to help repack the kits when everyone else left.',
+    shared_to_wall: true,
+    created_at: '2026-07-04T10:00:00.000Z',
+  },
+  {
+    note_id: 'demo-w2',
+    frame: 'strength',
+    content:
+      "I think you're strong at turning a messy discussion into three clear next steps.",
+    shared_to_wall: false,
+    created_at: '2026-07-04T10:00:00.000Z',
+  },
+  {
+    note_id: 'demo-w3',
+    frame: 'wish',
+    content: 'I hope you get to lead the next client pitch. You are more ready than you think.',
+    shared_to_wall: false,
+    created_at: '2026-07-04T10:00:00.000Z',
+  },
+  {
+    note_id: 'demo-w4',
+    frame: 'moment',
+    content: 'I noticed how you checked in on the new hire during lunch, quietly.',
+    shared_to_wall: true,
+    created_at: '2026-07-04T10:00:00.000Z',
+  },
+];
+
+const DEMO_PRIOR: TargetNote[] = [
+  {frame: 'strength', content: 'I think you keep the room calm when the pressure spikes.'},
+  {frame: 'moment', content: 'I noticed you made sure everyone had a chance to speak.'},
+];
+
+function buildDemoMe(mode: RoomMode): SnapshotMe {
+  return {
+    participant_id: DEMO_ME_ID,
+    display_name: 'You',
+    joined_round: 1,
+    reveal_state: 'locked',
+    wall_count: DEMO_WALL.length,
+    sent: [],
+    assignment:
+      mode === 'round_robin' ? {target_id: 'demo-amira', display_name: 'Amira'} : null,
+  };
+}
+
 type RoomState = {
   uid: string | null;
   roomId: string | null;
@@ -107,6 +200,9 @@ type RoomState = {
   // Reveal wall (fetched on demand behind the reveal gate)
   wall: MyWallNote[] | null;
 
+  // Host-only preview flag: when true, every RPC action below is stubbed.
+  demo: boolean;
+
   bootstrap: (code: string) => Promise<void>;
   restore: () => Promise<boolean>;
   refresh: () => Promise<void>;
@@ -123,6 +219,10 @@ type RoomState = {
   setReveal: (state: RevealState) => Promise<void>;
   reset: () => void;
   teardown: () => void;
+
+  // Host-only demo controls (see DemoStep above).
+  demoSetStep: (step: DemoStep, mode: RoomMode) => void;
+  stopDemo: () => void;
 };
 
 let subscription: RoomSubscription | null = null;
@@ -218,6 +318,8 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 
   wall: null,
 
+  demo: false,
+
   bootstrap: async (rawCode: string) => {
     const code = rawCode.trim().toUpperCase();
     set({hydrating: true, joinFailure: null, ended: false, error: null});
@@ -283,6 +385,22 @@ export const useRoomStore = create<RoomState>((set, get) => ({
   },
 
   claim: async (participantId: string) => {
+    if (get().demo) {
+      const picked = get().roster.find((r) => r.participant_id === participantId);
+      const roster = get().roster.map((r) =>
+        r.participant_id === participantId ? {...r, claimed: true} : r,
+      );
+      set({
+        roster,
+        role: 'player',
+        me: {
+          ...buildDemoMe(get().mode ?? 'round_robin'),
+          participant_id: participantId,
+          display_name: picked?.display_name ?? 'You',
+        },
+      });
+      return {ok: true};
+    }
     try {
       await ensureSession();
       await claimName(participantId);
@@ -296,6 +414,26 @@ export const useRoomStore = create<RoomState>((set, get) => ({
   },
 
   submitNote: async (input) => {
+    if (get().demo) {
+      const me = get().me;
+      if (me) {
+        set({
+          me: {
+            ...me,
+            sent: [
+              ...me.sent,
+              {
+                target_id: input.targetId,
+                frame: input.frame,
+                is_bonus: input.isBonus ?? false,
+                round: get().currentRound,
+              },
+            ],
+          },
+        });
+      }
+      return {ok: true};
+    }
     const roomId = get().roomId;
     if (!roomId) return {ok: false, reason: 'error', message: 'No room'};
     try {
@@ -315,12 +453,17 @@ export const useRoomStore = create<RoomState>((set, get) => ({
   },
 
   loadTargetNotes: async (targetId: string) => {
+    if (get().demo) return DEMO_PRIOR;
     const roomId = get().roomId;
     if (!roomId) return [];
     return getTargetNotes(roomId, targetId);
   },
 
   loadWall: async () => {
+    if (get().demo) {
+      set({wall: DEMO_WALL});
+      return DEMO_WALL;
+    }
     const roomId = get().roomId;
     if (!roomId) return [];
     const wall = await getMyWall(roomId);
@@ -329,6 +472,17 @@ export const useRoomStore = create<RoomState>((set, get) => ({
   },
 
   setNoteShared: async (noteId: string, shared: boolean) => {
+    if (get().demo) {
+      const wall = get().wall;
+      if (wall) {
+        set({
+          wall: wall.map((n) =>
+            n.note_id === noteId ? {...n, shared_to_wall: shared} : n,
+          ),
+        });
+      }
+      return;
+    }
     await setNoteSharedRpc(noteId, shared);
     // Optimistic local flip so the wall toggle feels instant; the notes ping
     // will reconcile via loadWall if anything drifted.
@@ -339,6 +493,7 @@ export const useRoomStore = create<RoomState>((set, get) => ({
   },
 
   setReveal: async (state: RevealState) => {
+    if (get().demo) return;
     const roomId = get().roomId;
     if (!roomId) return;
     try {
@@ -350,6 +505,54 @@ export const useRoomStore = create<RoomState>((set, get) => ({
 
   reset: () => {
     persistCode(null);
+    get().teardown();
+  },
+
+  demoSetStep: (step: DemoStep, mode: RoomMode) => {
+    const base: Partial<RoomState> = {
+      demo: true,
+      roomId: 'demo',
+      code: 'DEMO01',
+      mode,
+      currentRound: 2,
+      roundCount: 4,
+      roundSeconds: 180,
+      roundStartedAt: null,
+      timerPausedAt: null,
+      graceUntil: null,
+      seq: 1,
+      clockSkewMs: 0,
+      coverage: null,
+      snapshot: null,
+      connection: 'connected',
+      hydrating: false,
+      joinFailure: null,
+      ended: false,
+      error: null,
+    };
+    switch (step) {
+      case 'join':
+        set({...base, role: null, phase: 'lobby', roster: demoClaimRoster(), me: null, wall: null});
+        break;
+      case 'claim':
+        set({...base, role: 'joiner', phase: 'lobby', roster: demoClaimRoster(), me: null, wall: null});
+        break;
+      case 'lobby':
+        set({...base, role: 'player', phase: 'lobby', roster: demoClaimedRoster(), me: buildDemoMe(mode), wall: null});
+        break;
+      case 'briefing':
+        set({...base, role: 'player', phase: 'briefing', roster: demoClaimedRoster(), me: buildDemoMe(mode), wall: null});
+        break;
+      case 'write':
+        set({...base, role: 'player', phase: 'writing', roster: demoClaimedRoster(), me: buildDemoMe(mode), wall: null});
+        break;
+      case 'reveal':
+        set({...base, role: 'player', phase: 'reveal', roster: demoClaimedRoster(), me: buildDemoMe(mode), wall: null});
+        break;
+    }
+  },
+
+  stopDemo: () => {
     get().teardown();
   },
 
@@ -376,6 +579,7 @@ export const useRoomStore = create<RoomState>((set, get) => ({
       hydrating: false,
       joinFailure: null,
       wall: null,
+      demo: false,
     });
   },
 }));

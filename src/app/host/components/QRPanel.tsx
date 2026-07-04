@@ -8,9 +8,10 @@ import {consoleCard, numFont, dosisFont} from './hostStyles';
 type Props = {
   code: string;
   joinUrl: string;
+  onOpenBigScreen?: () => void;
 };
 
-export const QRPanel: React.FC<Props> = ({code, joinUrl}) => {
+export const QRPanel: React.FC<Props> = ({code, joinUrl, onOpenBigScreen}) => {
   const t = useT();
 
   return (
@@ -48,6 +49,26 @@ export const QRPanel: React.FC<Props> = ({code, joinUrl}) => {
       >
         {t('host.lobby.qr.hint')}
       </p>
+      {onOpenBigScreen && (
+        <button
+          type='button'
+          className='clickable'
+          onClick={onOpenBigScreen}
+          style={{
+            marginTop: 16,
+            padding: '10px 18px',
+            borderRadius: 'var(--radius-pill)',
+            border: 'none',
+            backgroundColor: 'var(--main-color)',
+            color: 'var(--neon-white)',
+            fontSize: 14,
+            fontWeight: 600,
+            fontFamily: dosisFont,
+          }}
+        >
+          {t('host.bigscreen.open')}
+        </button>
+      )}
     </div>
   );
 };

@@ -22,3 +22,10 @@
   width: 100%;
   height: 100%;
 }
+
+/* Desktop-first surfaces (host console, projector big screen) break out of the
+   mobile-app column and use the full viewport width. The player PWA stays capped. */
+#app:has([data-surface='host']),
+#app:has([data-surface='screen']) {
+  max-width: none;
+}

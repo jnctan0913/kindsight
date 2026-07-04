@@ -1,0 +1,38 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.header {
+  text-align: center;
+  max-width: 560px;
+}
+
+/* A phone-shaped frame so a facilitator can point at "this is the player's
+   screen". The player screens render inside verbatim (same components as /r). */
+.frame {
+  position: relative;
+  width: 390px;
+  max-width: 100%;
+  height: min(760px, calc(100dvh - 240px));
+  min-height: 440px;
+  background-color: var(--neon-white);
+  border: 10px solid var(--main-color);
+  border-radius: 40px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-shadow: 0 24px 60px rgba(30, 37, 56, 0.28);
+}
+
+/* The player surfaces size to 100dvh (viewport) by design; inside the frame we
+   pin the single child to the frame height so it fits the device mock. */
+.frame > div {
+  min-height: 100%;
+}
+
+.controls {
+  width: 100%;
+  max-width: 760px;
+}

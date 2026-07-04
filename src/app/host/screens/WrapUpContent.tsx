@@ -30,6 +30,7 @@ type Props = {
   onTriggerReveal: () => void;
   onRemoveNote: (id: string) => void;
   onEndRoom: () => void;
+  onHighlightToggle?: (enabled: boolean) => void;
 };
 
 export const WrapUpContent: React.FC<Props> = ({
@@ -43,6 +44,7 @@ export const WrapUpContent: React.FC<Props> = ({
   onTriggerReveal,
   onRemoveNote,
   onEndRoom,
+  onHighlightToggle,
 }) => {
   const t = useT();
   const [highlightOn, setHighlightOn] = useState(false);
@@ -67,7 +69,13 @@ export const WrapUpContent: React.FC<Props> = ({
           <HighlightToggle
             on={highlightOn}
             optedInCount={optedInCount}
-            onToggle={() => setHighlightOn((v) => !v)}
+            onToggle={() => {
+              setHighlightOn((v) => {
+                const next = !v;
+                onHighlightToggle?.(next);
+                return next;
+              });
+            }}
           />
           <PromptDeck />
         </div>

@@ -8,6 +8,7 @@ type Props = {
   href?: string | UrlObject;
   label: string;
   onClick?: () => void;
+  disabled?: boolean;
   style?: React.CSSProperties;
   colorScheme?: 'primary' | 'secondary';
   containerStyle?: React.CSSProperties;
@@ -17,6 +18,7 @@ export const Button: React.FC<Props> = ({
   label,
   style,
   onClick,
+  disabled = false,
   href = '#',
   containerStyle,
   colorScheme = 'primary',
@@ -28,7 +30,11 @@ export const Button: React.FC<Props> = ({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
+    boxSizing: 'border-box',
+    padding: '0 16px',
     fontSize: 18,
+    lineHeight: 1,
+    textAlign: 'center',
     textTransform: 'capitalize',
     fontFamily: 'var(--font-league-spartan)',
     fontWeight: 400,
@@ -36,10 +42,11 @@ export const Button: React.FC<Props> = ({
       colorScheme === 'primary' ? 'var(--accent-color)' : 'var(--main-color)',
     color:
       colorScheme === 'primary' ? 'var(--main-color)' : 'var(--white-color)',
+    cursor: disabled ? 'not-allowed' : undefined,
     ...style,
   };
 
-  if (href && !onClick) {
+  if (href && !onClick && !disabled) {
     return (
       <div style={{...containerStyle}}>
         <Link
@@ -55,7 +62,9 @@ export const Button: React.FC<Props> = ({
   return (
     <div style={{...containerStyle}}>
       <button
+        type='button'
         onClick={onClick}
+        disabled={disabled}
         style={{...btnStyle}}
       >
         {label}

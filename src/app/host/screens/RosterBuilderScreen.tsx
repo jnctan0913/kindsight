@@ -14,12 +14,21 @@ type RosterItem = {id: string; name: string};
 type Props = {
   initial: string[];
   onContinue: (names: string[]) => void;
+  onBack?: () => void;
+  submitting?: boolean;
+  error?: string | null;
 };
 
 let idSeq = 0;
 const nextId = () => `roster-${idSeq++}`;
 
-export const RosterBuilderScreen: React.FC<Props> = ({initial, onContinue}) => {
+export const RosterBuilderScreen: React.FC<Props> = ({
+  initial,
+  onContinue,
+  onBack,
+  submitting = false,
+  error = null,
+}) => {
   const t = useT();
   const [items, setItems] = useState<RosterItem[]>(() =>
     initial.map((name) => ({id: nextId(), name})),
@@ -117,7 +126,24 @@ export const RosterBuilderScreen: React.FC<Props> = ({initial, onContinue}) => {
           alt='Kindsight'
           style={{width: 132, height: 'auto'}}
         />
-        <LanguageToggle />
+        <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
+          {onBack && (
+            <button
+              type='button'
+              className='clickable t14'
+              onClick={onBack}
+              style={{
+                background: 'none',
+                border: 'none',
+                textDecoration: 'underline',
+                color: 'var(--text-color)',
+              }}
+            >
+              {t('common.back')}
+            </button>
+          )}
+          <LanguageToggle />
+        </div>
       </div>
 
       <div style={{...consoleCard, maxWidth: 640, margin: '24px auto 0', padding: 28}}>
@@ -256,14 +282,21 @@ export const RosterBuilderScreen: React.FC<Props> = ({initial, onContinue}) => {
           <PasteList onAddAll={addNames} />
         </div>
 
+        {error && (
+          <div style={{marginTop: 18}}>
+            <Callout tone='warning'>{error}</Callout>
+          </div>
+        )}
+
         <components.Button
-          label={t('host.roster.continue')}
+          label={submitting ? t('host.roster.creating') : t('host.roster.continue')}
           onClick={() => onContinue(items.map((it) => it.name))}
           colorScheme='primary'
+          disabled={items.length === 0 || submitting}
           containerStyle={{marginTop: 28}}
           style={{
             textTransform: 'none',
-            opacity: items.length === 0 ? 0.45 : 1,
+            opacity: items.length === 0 || submitting ? 0.45 : 1,
           }}
         />
       </div>
