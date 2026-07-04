@@ -35,6 +35,11 @@
   border-radius: 46px;
   overflow: hidden;
   box-shadow: 0 26px 64px rgba(30, 37, 56, 0.3);
+  /* Player screens pin their bottom bar / toast / export overlay with
+     position:fixed (correct on /r where the screen is the viewport). A transform
+     makes this frame the containing block for those fixed descendants, so they
+     stay inside the device mock here instead of escaping to the page. */
+  transform: translateZ(0);
 }
 
 /* The rendered player screen (#screen) fills the device exactly. */
