@@ -16,14 +16,12 @@ type Props = {
   briefingIndex: number;
   mode: RoomMode;
   onBriefingIndexChange: (index: number) => void;
-  onStart: () => void;
 };
 
 export const BriefingContent: React.FC<Props> = ({
   briefingIndex,
   mode,
   onBriefingIndexChange,
-  onStart,
 }) => {
   const t = useT();
   const currentIndex = normalizeBriefingIndex(briefingIndex);
@@ -36,11 +34,7 @@ export const BriefingContent: React.FC<Props> = ({
   };
 
   return (
-    <div
-      style={{
-        maxWidth: 520,
-      }}
-    >
+    <div>
       <div style={consoleCard}>
         <span style={cardHeading}>{t('phase.briefing')}</span>
         <p className='t16' style={{marginTop: 12, lineHeight: 1.5}}>
@@ -90,13 +84,6 @@ export const BriefingContent: React.FC<Props> = ({
             style={{textTransform: 'none'}}
           />
         </div>
-        <components.Button
-          label={t('host.briefing.advance')}
-          onClick={onStart}
-          colorScheme='primary'
-          containerStyle={{marginTop: 14}}
-          style={{textTransform: 'none'}}
-        />
       </div>
     </div>
   );

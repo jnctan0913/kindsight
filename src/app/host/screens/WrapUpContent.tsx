@@ -16,7 +16,7 @@ import {HighlightToggle} from '../components/HighlightToggle';
 import {PromptDeck} from '../components/PromptDeck';
 import {ModerationFeed} from '../components/ModerationFeed';
 import {ConfirmDialog} from '../components/ConfirmDialog';
-import {consoleCard, cardHeading, dosisFont} from '../components/hostStyles';
+import {consoleCard, cardHeading, consoleGrid, span, dosisFont} from '../components/hostStyles';
 import {components} from '../../../components';
 
 type Props = {
@@ -57,39 +57,36 @@ export const WrapUpContent: React.FC<Props> = ({
       : [];
 
   return (
-    <div>
-      <div style={{display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'flex-start'}}>
-        <div style={{flex: '1 1 320px', minWidth: 300, display: 'flex', flexDirection: 'column', gap: 24}}>
-          <RevealTriggerCard
-            triggered={revealTriggered}
-            blockers={blockers}
-            onTrigger={onTriggerReveal}
-          />
-          {revealTriggered && <RevealStatusList statuses={revealStatus} />}
-          <HighlightToggle
-            on={highlightOn}
-            optedInCount={optedInCount}
-            onToggle={() => {
-              setHighlightOn((v) => {
-                const next = !v;
-                onHighlightToggle?.(next);
-                return next;
-              });
-            }}
-          />
-          <PromptDeck />
-        </div>
+    <div style={{...consoleGrid, alignItems: 'start'}}>
+      <div style={{...span(7), display: 'flex', flexDirection: 'column', gap: 20}}>
+        <RevealTriggerCard
+          triggered={revealTriggered}
+          blockers={blockers}
+          onTrigger={onTriggerReveal}
+        />
+        {revealTriggered && <RevealStatusList statuses={revealStatus} />}
+        <HighlightToggle
+          on={highlightOn}
+          optedInCount={optedInCount}
+          onToggle={() => {
+            setHighlightOn((v) => {
+              const next = !v;
+              onHighlightToggle?.(next);
+              return next;
+            });
+          }}
+        />
+        <PromptDeck />
+      </div>
 
-        <div style={{flex: '1 1 320px', minWidth: 300}}>
-          <ModerationFeed notes={notes} onRemove={onRemoveNote} />
-        </div>
+      <div style={span(5)}>
+        <ModerationFeed notes={notes} onRemove={onRemoveNote} />
       </div>
 
       <div
         style={{
           ...consoleCard,
-          marginTop: 24,
-          maxWidth: 560,
+          ...span(12),
           border: '1px solid var(--warn-surface)',
           backgroundColor: 'var(--warn-surface)',
         }}

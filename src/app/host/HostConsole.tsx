@@ -596,6 +596,29 @@ export const HostConsole: React.FC = () => {
       : hostSnap.coverage.filter((c) => c.claimed && c.live_count < REVEAL_FLOOR).length
     : MOCK_ROUND_PROGRESS.filter((p) => p.state !== 'submitted').length;
 
+  // The one primary action per phase lives in the shell's sticky action bar, so
+  // it is always on screen instead of appended below the fold.
+  const advanceButton = (label: string, onClick: () => void) => (
+    <components.Button
+      label={label}
+      onClick={onClick}
+      colorScheme='primary'
+      containerStyle={{maxWidth: 300, width: '100%'}}
+      style={{textTransform: 'none'}}
+    />
+  );
+  const primaryAction =
+    step === 'lobby'
+      ? advanceButton(t('host.lobby.start'), () => {
+          setBriefingIndex(0);
+          void advanceRoomPhase('briefing');
+        })
+      : step === 'briefing'
+        ? advanceButton(t('host.briefing.advance'), () => void advanceRoomPhase('writing'))
+        : step === 'writing'
+          ? advanceButton(t('host.game.advanceReveal'), () => void advanceRoomPhase('wrapup'))
+          : undefined;
+
   return (
     <ConsoleShell
       code={roomCode}
@@ -603,6 +626,7 @@ export const HostConsole: React.FC = () => {
       playerCount={playerCount}
       noteCount={notes.length}
       previewWidth={previewWidth}
+      primaryAction={primaryAction}
       onHome={() => setStep('hub')}
       onSignOut={() => void handleSignOut()}
       rightPanel={
@@ -617,10 +641,6 @@ export const HostConsole: React.FC = () => {
           code={roomCode}
           joinUrl={joinUrl}
           roster={hostRoster}
-          onStart={() => {
-            setBriefingIndex(0);
-            void advanceRoomPhase('briefing');
-          }}
           onOpenBigScreen={() => openBigScreen(roomCode)}
         />
       )}
@@ -630,7 +650,6 @@ export const HostConsole: React.FC = () => {
           briefingIndex={briefingIndex}
           mode={toScreenMode(mode)}
           onBriefingIndexChange={setBriefingIndex}
-          onStart={() => void advanceRoomPhase('writing')}
         />
       )}
 
@@ -649,7 +668,6 @@ export const HostConsole: React.FC = () => {
           onTogglePause={() => setPaused((v) => !v)}
           onAdvance={advanceRound}
           onRemoveNote={removeNote}
-          onAdvanceReveal={() => void advanceRoomPhase('wrapup')}
         />
       )}
 

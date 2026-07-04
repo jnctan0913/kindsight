@@ -12,6 +12,19 @@ export const consoleCard: React.CSSProperties = {
   padding: 20,
 };
 
+// Shared 12-column grid so cards align phase-to-phase and fill the column at
+// equal height. Use gridColumn: 'span N' on children (see span()).
+export const consoleGrid: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(12, minmax(0, 1fr))',
+  gap: 20,
+  alignItems: 'stretch',
+};
+
+export const span = (n: number): React.CSSProperties => ({gridColumn: `span ${n}`});
+
+export const cardFill: React.CSSProperties = {height: '100%'};
+
 export const cardHeading: React.CSSProperties = {
   fontSize: 16,
   fontWeight: 600,
