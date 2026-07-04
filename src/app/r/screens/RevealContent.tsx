@@ -314,8 +314,12 @@ export const RevealContent: React.FC = () => {
         <div className={styles.pinnedBar}>
           <button
             ref={exportBtnRef}
-            className={styles.primaryButton}
-            style={{marginTop: 0}}
+            className={`${styles.primaryButton} pressable`}
+            style={{
+              marginTop: 0,
+              borderRadius: 50,
+              boxShadow: 'var(--shadow-soft), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+            }}
             disabled={!exportReady || exporting}
             onClick={onExportTap}
           >
