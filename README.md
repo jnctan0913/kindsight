@@ -2,8 +2,6 @@
 
 <img src="public/assets/kindsight/readme-hero.png" alt="Kindsight — The Light Behind You" width="820" />
 
-### Kindsight
-
 **A digital adaptation of the physical icebreaker "你背后的光" (The Light Behind You).**
 
 Players anonymously write kind, specific observations about each other, then each person reveals their own "wall" of notes in a deliberate, ritual moment. Built for teams, workshops, and conference groups.
@@ -31,9 +29,9 @@ Facilitators run the paper version because the reveal moment is powerful: a wall
 
 Kindsight keeps what makes the game work (the ritual pause, specific warmth, trusted anonymity) and fixes the frictions.
 
-<img src="public/assets/kindsight/mascot-write.png" align="right" width="110" alt="" />
-
 ## How it works
+
+<img src="public/assets/kindsight/mascot-write.png" align="right" width="110" alt="" />
 
 Three surfaces stay in sync off one server-side room phase:
 
@@ -60,11 +58,15 @@ Three surfaces stay in sync off one server-side room phase:
 - **Mode A, Round-robin** — the app generates a derangement per round (never yourself, never a repeated target) so coverage is even. Rounds advance by timer or manually.
 - **Mode B, Free-select** — players pick anyone; the console shows a live coverage bar so the host can nudge under-written people.
 
-<img src="public/assets/kindsight/mascot-peek.png" align="right" width="90" alt="" />
+<br clear="all" />
 
 ## Anonymity is a hard invariant
 
+<img src="public/assets/kindsight/mascot-peek.png" align="right" width="90" alt="" />
+
 Notes are anonymous to humans forever. `author_id` is stored only for moderation and rate limiting, never exposed, and no note is visible to its subject before the reveal phase. This is enforced in Postgres with Row Level Security and security-definer RPCs, not just client code.
+
+<br clear="all" />
 
 ## Tech stack
 
