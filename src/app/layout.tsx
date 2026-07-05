@@ -36,6 +36,32 @@ export default function RootLayout({
   return (
     <html lang='en'>
       <head>
+        {/*
+          Defense-in-depth CSP. GitHub Pages cannot set HTTP headers, so this
+          rides a meta tag. Static export inlines Next's bootstrap scripts and
+          styled-jsx/swiper inject inline styles, so 'unsafe-inline' is required
+          for script/style. The one external origin is Supabase (REST + realtime
+          websocket); fonts are self-hosted by next/font, no analytics.
+          (frame-ancestors/X-Frame-Options are header-only and ignored in meta,
+          so clickjacking cannot be blocked on this host.)
+        */}
+        <meta
+          httpEquiv='Content-Security-Policy'
+          content={[
+            "default-src 'self'",
+            "base-uri 'self'",
+            "object-src 'none'",
+            "script-src 'self' 'unsafe-inline'",
+            "style-src 'self' 'unsafe-inline'",
+            "img-src 'self' data: blob:",
+            "font-src 'self' data:",
+            "media-src 'self'",
+            "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+            "worker-src 'self' blob:",
+            "manifest-src 'self'",
+            "form-action 'self'",
+          ].join('; ')}
+        />
         <meta
           name='viewport'
           content='width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0'
