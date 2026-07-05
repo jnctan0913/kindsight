@@ -1,10 +1,27 @@
-# Kindsight
+<div align="center">
+
+<img src="public/assets/kindsight/readme-hero.png" alt="Kindsight — The Light Behind You" width="820" />
+
+### Kindsight
 
 **A digital adaptation of the physical icebreaker "你背后的光" (The Light Behind You).**
 
 Players anonymously write kind, specific observations about each other, then each person reveals their own "wall" of notes in a deliberate, ritual moment. Built for teams, workshops, and conference groups.
 
-**Live:** https://jnctan0913.github.io/kindsight/
+<p>
+  <a href="https://jnctan0913.github.io/kindsight/"><strong>Live demo &rarr;</strong></a>
+</p>
+
+<p>
+  <a href="https://jnctan0913.github.io/kindsight/"><img alt="Live demo" src="https://img.shields.io/badge/live-demo-1b2a4e?style=flat-square"></a>
+  <img alt="Next.js 15" src="https://img.shields.io/badge/Next.js-15-000000?style=flat-square&logo=next.js&logoColor=white">
+  <img alt="React 19" src="https://img.shields.io/badge/React-19-149eca?style=flat-square&logo=react&logoColor=white">
+  <img alt="Supabase" src="https://img.shields.io/badge/Supabase-3ecf8e?style=flat-square&logo=supabase&logoColor=white">
+  <img alt="PWA" src="https://img.shields.io/badge/PWA-ready-5a0fc8?style=flat-square">
+  <img alt="Notes anonymous forever" src="https://img.shields.io/badge/notes-anonymous%20forever-1b2a4e?style=flat-square">
+</p>
+
+</div>
 
 ---
 
@@ -13,6 +30,8 @@ Players anonymously write kind, specific observations about each other, then eac
 Facilitators run the paper version because the reveal moment is powerful: a wall of anonymous kindness, read in silence. Paper undermines it: handwriting breaks anonymity, coverage is uneven (popular people fill a page while quiet people get two notes), nothing survives the session, and the host has to roam the room policing quality instead of holding it.
 
 Kindsight keeps what makes the game work (the ritual pause, specific warmth, trusted anonymity) and fixes the frictions.
+
+<img src="public/assets/kindsight/mascot-write.png" align="right" width="110" alt="" />
 
 ## How it works
 
@@ -40,6 +59,8 @@ Three surfaces stay in sync off one server-side room phase:
 
 - **Mode A, Round-robin** — the app generates a derangement per round (never yourself, never a repeated target) so coverage is even. Rounds advance by timer or manually.
 - **Mode B, Free-select** — players pick anyone; the console shows a live coverage bar so the host can nudge under-written people.
+
+<img src="public/assets/kindsight/mascot-peek.png" align="right" width="90" alt="" />
 
 ## Anonymity is a hard invariant
 
@@ -116,3 +137,10 @@ Product and engineering docs live in [`docs/`](docs/): the PRD, design requireme
 ## Notes
 
 Rooms are ephemeral (host end-and-delete plus a 24h TTL) and there are no user accounts. A reference marketplace template used during design is licensed content and is gitignored, never published.
+
+---
+
+<div align="center">
+  <img src="public/assets/kindsight/mascot-cheer.png" width="120" alt="Kindsight mascot cheering" />
+  <p><em>Everyone leaves feeling seen.</em></p>
+</div>
