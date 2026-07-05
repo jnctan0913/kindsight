@@ -7,6 +7,8 @@ import {LanguageToggle, useT} from '@/i18n';
 import {assignAvatars} from '@/lib/avatar';
 import {useRoomStore} from '@/stores/room';
 
+import styles from '../player.module.scss';
+
 export const ClaimContent: React.FC = () => {
   const t = useT();
   const roster = useRoomStore((s) => s.roster);
@@ -42,6 +44,7 @@ export const ClaimContent: React.FC = () => {
 
   return (
     <components.Screen>
+      <div className={styles.aura} aria-hidden='true' />
       <components.Header rightSlot={<LanguageToggle />} />
       <main className='container scrollable' style={{flex: 1, paddingBottom: 20}}>
         <h2 style={{marginTop: 16, marginBottom: 20}}>{t('player.claim.title')}</h2>
@@ -68,11 +71,12 @@ export const ClaimContent: React.FC = () => {
           ))}
         </div>
       </main>
-      <footer style={{padding: 20}}>
+      <footer className={styles.footer}>
         <components.Button
           label={claiming ? t('player.write.sending') : t('player.claim.confirm')}
           onClick={() => void confirm()}
           colorScheme='secondary'
+          className='pressable'
           style={{
             textTransform: 'none',
             opacity: selected && !claiming ? 1 : 0.5,

@@ -1,12 +1,14 @@
 'use client';
 
 import React, {useEffect, useRef, useState} from 'react';
+import Link from 'next/link';
 
 import {useT} from '../../../i18n';
 import type {StringKey} from '../../../i18n';
 import {useRoomStore, type DemoStep} from '../../../stores/room';
 import type {RoomMode} from '../../../lib/types';
-import {consoleCard, dosisFont} from './hostStyles';
+import {Routes} from '../../../routes';
+import {dosisFont} from './hostStyles';
 import styles from './PlayerPreview.module.scss';
 
 import {JoinPrompt} from '../../r/screens/JoinPrompt';
@@ -124,18 +126,22 @@ export const PlayerPreview: React.FC<Props> = ({initialStep = 'lobby', initialMo
 
   const navButton = (label: string, onClick: () => void, disabled: boolean) => (
     <button
-      className='clickable'
+      className='clickable pressable'
       onClick={onClick}
       disabled={disabled}
       style={{
-        padding: '10px 20px',
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: '12px 20px',
         borderRadius: 'var(--radius-control)',
         border: '2px solid var(--main-color)',
         backgroundColor: 'var(--main-color)',
         color: 'var(--neon-white)',
         fontFamily: dosisFont,
-        fontSize: 14,
+        fontSize: 15,
         fontWeight: 700,
+        textAlign: 'center',
         opacity: disabled ? 0.35 : 1,
       }}
     >
@@ -144,54 +150,71 @@ export const PlayerPreview: React.FC<Props> = ({initialStep = 'lobby', initialMo
   );
 
   return (
-    <div className={styles.wrap}>
-      <div className={styles.header}>
-        <h2 style={{fontFamily: dosisFont}}>{t('host.preview.title')}</h2>
-        <p className='t14' style={{marginTop: 6}}>
-          {t('host.preview.subtitle')}
-        </p>
+    <div className={styles.wrap} data-surface='host'>
+      {/* Left: the phone device */}
+      <div className={styles.device}>
+        <div className={styles.frame} data-surface='player'>
+          <div className={styles.screenScroll}>{renderScreen()}</div>
+        </div>
       </div>
 
-      <div className={styles.frame} data-surface='player'>
-        {renderScreen()}
-      </div>
-
-      <div className={`${styles.controls}`} style={{...consoleCard, padding: 18}}>
-        {/* Mode toggle */}
-        <div
+      {/* Right: the control panel */}
+      <div className={styles.panel}>
+        <Link
+          href={Routes.HOST}
+          className='clickable pressable'
           style={{
-            display: 'flex',
-            justifyContent: 'center',
-            gap: 8,
-            marginBottom: 16,
+            alignSelf: 'flex-start',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '7px 14px',
+            borderRadius: 'var(--radius-pill)',
+            border: '1px solid var(--border-color)',
+            backgroundColor: 'var(--white-color)',
+            color: 'var(--main-color)',
+            fontFamily: dosisFont,
+            fontSize: 13,
+            fontWeight: 700,
+            textDecoration: 'none',
           }}
         >
+          <span aria-hidden='true' style={{fontSize: 16, lineHeight: 1}}>
+            &#8592;
+          </span>
+          {t('host.hub.home')}
+        </Link>
+
+        <div className={styles.header}>
+          <h2 style={{fontFamily: dosisFont}}>{t('host.preview.title')}</h2>
+          <p className='t14' style={{marginTop: 6}}>
+            {t('host.preview.subtitle')}
+          </p>
+        </div>
+
+        {/* Mode toggle */}
+        <div className={styles.modeRow}>
           {modeButton('round_robin', t('host.preview.mode.a'))}
           {modeButton('free_select', t('host.preview.mode.b'))}
         </div>
 
-        {/* Step rail */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(6, 1fr)',
-            gap: 6,
-          }}
-        >
+        {/* Vertical step list */}
+        <div className={styles.steps}>
           {STEP_META.map((meta, i) => {
             const active = meta.step === step;
             const done = i < idx;
             return (
               <button
                 key={meta.step}
-                className='clickable'
+                className='clickable pressable'
                 onClick={() => setStep(meta.step)}
                 aria-current={active ? 'step' : undefined}
                 style={{
-                  flexDirection: 'column',
+                  display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '8px 6px',
+                  gap: 12,
+                  width: '100%',
+                  padding: '11px 14px',
                   borderRadius: 'var(--radius-control)',
                   border: active
                     ? '2px solid var(--accent-color)'
@@ -203,11 +226,33 @@ export const PlayerPreview: React.FC<Props> = ({initialStep = 'lobby', initialMo
                       : 'var(--white-color)',
                   color: active ? 'var(--white-color)' : 'var(--main-color)',
                   fontFamily: dosisFont,
-                  fontSize: 12,
+                  fontSize: 15,
                   fontWeight: 700,
+                  textAlign: 'left',
                 }}
               >
-                <span style={{display: 'block', opacity: 0.7, fontSize: 10}}>{i + 1}</span>
+                <span
+                  aria-hidden='true'
+                  style={{
+                    flex: '0 0 auto',
+                    width: 24,
+                    height: 24,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: '50%',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    backgroundColor: active
+                      ? 'rgba(255, 255, 255, 0.22)'
+                      : done
+                        ? 'var(--accent-color)'
+                        : 'var(--border-color)',
+                    color: active ? 'var(--white-color)' : done ? 'var(--white-color)' : 'var(--main-color)',
+                  }}
+                >
+                  {i + 1}
+                </span>
                 {t(meta.label)}
               </button>
             );
@@ -217,28 +262,16 @@ export const PlayerPreview: React.FC<Props> = ({initialStep = 'lobby', initialMo
         {/* Caption */}
         {caption && (
           <p
-            className='t14'
+            className={`t14 ${styles.caption}`}
             aria-live='polite'
-            style={{
-              marginTop: 14,
-              textAlign: 'center',
-              color: 'var(--text-color)',
-              minHeight: 40,
-            }}
+            style={{color: 'var(--text-color)'}}
           >
             {t(caption)}
           </p>
         )}
 
         {/* Prev / Next */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            gap: 12,
-            marginTop: 6,
-          }}
-        >
+        <div className={styles.footer}>
           {navButton(t('host.preview.prev'), () => go(-1), idx === 0)}
           {navButton(t('host.preview.next'), () => go(1), idx === STEPS.length - 1)}
         </div>

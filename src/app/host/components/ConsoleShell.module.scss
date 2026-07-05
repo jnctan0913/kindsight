@@ -210,6 +210,12 @@
   overflow-y: auto;
 }
 
+/* Fill mode (e.g. the writing dashboard): the body owns a fixed height and the
+   inner panels scroll on their own, so the page itself never scrolls. */
+.scrollAreaFill {
+  overflow-y: hidden;
+}
+
 .content {
   padding: 28px 32px;
   max-width: 1600px;
@@ -228,8 +234,19 @@
   align-items: start;
 }
 
+.contentFill {
+  height: 100%;
+  box-sizing: border-box;
+  align-items: stretch;
+}
+
 .primaryContent {
   min-width: 0;
+}
+
+.primaryContentFill {
+  height: 100%;
+  min-height: 0;
 }
 
 .rightPanel {
@@ -326,6 +343,18 @@
 
   .scrollArea {
     overflow-y: visible;
+  }
+
+  .scrollAreaFill {
+    overflow-y: visible;
+  }
+
+  .contentFill {
+    height: auto;
+  }
+
+  .primaryContentFill {
+    height: auto;
   }
 
   .content {

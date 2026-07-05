@@ -1,0 +1,36 @@
+/* Wrap-up dashboard: a fixed-height board matching the writing screen. The wide
+   left column is the moderation feed, which fills the height and scrolls on its
+   own; the right column holds the big-screen controls (wall, prompts, closing)
+   and scrolls as a whole. Reveal progress lives in the preview rail. */
+.board {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
+  gap: 20px;
+  height: 100%;
+  min-height: 0;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.fillSlot {
+  min-height: 0;
+}
+
+@media (max-width: 880px) {
+  .board {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: 0;
+  }
+
+  .col {
+    overflow: visible;
+  }
+}

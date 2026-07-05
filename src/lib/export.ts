@@ -288,6 +288,180 @@ function drawWall(
   return canvas;
 }
 
+// ---------------------------------------------------------------------------
+// Shareable single-note cards (wallpaper / square) over a brand background.
+// ---------------------------------------------------------------------------
+
+export type ShareCardFormat = 'wallpaper' | 'square';
+
+export type ShareCardStrings = {
+  wordmark: string;
+  attribution: string;
+  frameLabel: Record<ExportFrame, string>;
+};
+
+export type ShareBackgroundSpec = {
+  src: string;
+  tone: 'dark' | 'light';
+  /** Vertical center (0..1) of the text block for this format. */
+  anchor: number;
+  /** Vertical focus (0..1) used when cover-cropping to a square. */
+  focus: number;
+};
+
+export type ShareCardOpts = {
+  format: ShareCardFormat;
+  fonts: ExportFonts;
+  strings: ShareCardStrings;
+  background: ShareBackgroundSpec;
+};
+
+const SHARE_DIMS: Record<ShareCardFormat, {w: number; h: number}> = {
+  wallpaper: {w: 1290, h: 2796},
+  square: {w: 1080, h: 1080},
+};
+
+const imgCache = new Map<string, Promise<HTMLImageElement | null>>();
+function loadImageCached(src: string) {
+  let p = imgCache.get(src);
+  if (!p) {
+    p = loadImage(src);
+    imgCache.set(src, p);
+  }
+  return p;
+}
+
+function drawCover(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement | null,
+  W: number,
+  H: number,
+  focus: number,
+) {
+  if (!img || !img.naturalWidth) {
+    ctx.fillStyle = TOKENS.navy;
+    ctx.fillRect(0, 0, W, H);
+    return;
+  }
+  const s = Math.max(W / img.naturalWidth, H / img.naturalHeight);
+  const dw = img.naturalWidth * s;
+  const dh = img.naturalHeight * s;
+  const dx = (W - dw) / 2;
+  let dy = H / 2 - focus * dh;
+  dy = Math.min(0, Math.max(H - dh, dy));
+  ctx.drawImage(img, dx, dy, dw, dh);
+}
+
+function drawShareCard(
+  note: ExportNote,
+  opts: ShareCardOpts,
+  bg: HTMLImageElement | null,
+): HTMLCanvasElement {
+  const {format, fonts, strings, background} = opts;
+  const {w: W, h: H} = SHARE_DIMS[format];
+
+  const canvas = document.createElement('canvas');
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d')!;
+  ctx.textBaseline = 'alphabetic';
+
+  drawCover(ctx, bg, W, H, format === 'square' ? background.focus : 0.5);
+
+  const lightText = background.tone === 'dark';
+  const textColor = lightText ? TOKENS.offWhite : TOKENS.navy;
+
+  // Auto-fit: shrink the note until the whole block fits the calm zone.
+  const maxW = W * 0.8;
+  const pillH = format === 'wallpaper' ? 60 : 52;
+  const gapPillNote = format === 'wallpaper' ? 48 : 40;
+  const gapNoteMark = format === 'wallpaper' ? 56 : 44;
+  const markSize = format === 'wallpaper' ? 34 : 30;
+  const subSize = Math.round(markSize * 0.72);
+  const zoneMaxH = H * (format === 'wallpaper' ? 0.46 : 0.62);
+
+  let noteSize = format === 'wallpaper' ? 72 : 62;
+  const minSize = 34;
+  let lines: string[] = [];
+  let lineH = 0;
+  let blockH = 0;
+  while (noteSize >= minSize) {
+    ctx.font = `600 ${noteSize}px ${fonts.dosis}, ${fonts.notoSC}, sans-serif`;
+    lines = wrapText(ctx, note.content, maxW);
+    lineH = noteSize * 1.34;
+    blockH =
+      pillH +
+      gapPillNote +
+      lines.length * lineH +
+      gapNoteMark +
+      markSize +
+      subSize * 1.2;
+    if (blockH <= zoneMaxH) break;
+    noteSize -= 2;
+  }
+
+  const anchor = background.anchor;
+  const cy = H * anchor;
+  const top = cy - blockH / 2;
+
+  // Radial scrim behind the text so legibility never depends on the artwork.
+  const scrimR = Math.max(maxW, blockH) * 0.95;
+  const rg = ctx.createRadialGradient(W / 2, cy, scrimR * 0.15, W / 2, cy, scrimR);
+  if (lightText) {
+    rg.addColorStop(0, 'rgba(16, 21, 34, 0.68)');
+    rg.addColorStop(1, 'rgba(16, 21, 34, 0)');
+  } else {
+    rg.addColorStop(0, 'rgba(245, 250, 251, 0.78)');
+    rg.addColorStop(1, 'rgba(245, 250, 251, 0)');
+  }
+  ctx.fillStyle = rg;
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.textAlign = 'center';
+
+  // Frame pill.
+  const label = strings.frameLabel[note.frame];
+  ctx.font = `600 ${Math.round(pillH * 0.4)}px ${fonts.leagueSpartan}, ${fonts.notoSC}, sans-serif`;
+  const pillW = ctx.measureText(label).width + 56;
+  ctx.fillStyle = TOKENS.teal;
+  roundRectPath(ctx, W / 2 - pillW / 2, top, pillW, pillH, pillH / 2);
+  ctx.fill();
+  ctx.fillStyle = TOKENS.navy;
+  ctx.fillText(label, W / 2, top + pillH * 0.68);
+
+  // Note body.
+  ctx.fillStyle = textColor;
+  ctx.font = `600 ${noteSize}px ${fonts.dosis}, ${fonts.notoSC}, sans-serif`;
+  let ty = top + pillH + gapPillNote + noteSize;
+  for (const line of lines) {
+    ctx.fillText(line, W / 2, ty);
+    ty += lineH;
+  }
+
+  // Wordmark + anonymity line.
+  const my = top + pillH + gapPillNote + lines.length * lineH + gapNoteMark + markSize;
+  ctx.fillStyle = textColor;
+  ctx.globalAlpha = 0.92;
+  ctx.font = `700 ${markSize}px ${fonts.dosis}, ${fonts.notoSC}, sans-serif`;
+  ctx.fillText(strings.wordmark, W / 2, my);
+  ctx.globalAlpha = 0.7;
+  ctx.font = `500 ${subSize}px ${fonts.dosis}, ${fonts.notoSC}, sans-serif`;
+  ctx.fillText(strings.attribution, W / 2, my + subSize * 1.5);
+  ctx.globalAlpha = 1;
+
+  ctx.textAlign = 'left';
+  return canvas;
+}
+
+export async function renderShareImage(
+  note: ExportNote,
+  opts: ShareCardOpts,
+): Promise<Blob> {
+  await ensureFonts(opts.fonts);
+  const bg = await loadImageCached(opts.background.src);
+  return canvasToBlob(drawShareCard(note, opts, bg));
+}
+
 function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
   return new Promise((resolve, reject) => {
     canvas.toBlob(
@@ -361,4 +535,37 @@ export function saveWallImage(
   }
 
   return Promise.resolve(longPress());
+}
+
+// Batch save (one image per note). Modern browsers share all files at once;
+// otherwise we download them sequentially. Rendering is async so this cannot be
+// the iOS synchronous-gesture path; that constraint only applies to single save.
+export async function saveImages(
+  items: {blob: Blob; fileName: string}[],
+): Promise<SaveResult> {
+  const files = items.map(
+    (i) => new File([i.blob], i.fileName, {type: 'image/png'}),
+  );
+  if (navigator.canShare) {
+    try {
+      if (navigator.canShare({files})) {
+        await navigator.share({files});
+        return 'shared';
+      }
+    } catch {
+      // fall through to download
+    }
+  }
+  for (const item of items) {
+    const url = URL.createObjectURL(item.blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = item.fileName;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    await new Promise((r) => setTimeout(r, 350));
+    URL.revokeObjectURL(url);
+  }
+  return 'downloaded';
 }

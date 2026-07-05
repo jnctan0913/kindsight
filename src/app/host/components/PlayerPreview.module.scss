@@ -1,38 +1,126 @@
+/* Rehearsal layout: the phone device on the left, a control panel on the right,
+   both fitting one desktop viewport with no page scroll. Collapses to a stacked
+   column on narrow windows (real mobile / a small host window). The reveal-demo
+   route flags this subtree data-surface='host' so #app drops its mobile-column
+   cap and this grid can use the full width. */
 .wrap {
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(300px, 380px);
+  align-items: stretch;
+  justify-content: center;
+  gap: clamp(24px, 4vw, 64px);
+  height: 100dvh;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.device {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Real phone proportions (~9:19.5). Height drives the size so the frame grows to
+   fill the viewport without ever squashing the aspect ratio. */
+.frame {
+  position: relative;
+  aspect-ratio: 390 / 812;
+  height: min(812px, calc(100dvh - 48px));
+  width: auto;
+  max-width: 100%;
+  background-color: var(--neon-white);
+  border: 12px solid var(--main-color);
+  border-radius: 46px;
+  overflow: hidden;
+  box-shadow: 0 26px 64px rgba(30, 37, 56, 0.3);
+  /* Player screens pin their bottom bar / toast / export overlay with
+     position:fixed (correct on /r where the screen is the viewport). A transform
+     makes this frame the containing block for those fixed descendants, so they
+     stay inside the device mock here instead of escaping to the page. */
+  transform: translateZ(0);
+}
+
+/* The rendered player screen fills the device and scrolls inside it. On /r the
+   screen is the viewport (body scrolls); here the frame is overflow:hidden, so
+   without this a tall wall (many notes) would be clipped with no way to reach
+   the notes below the fold. */
+.screenScroll {
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Player screens size to 100dvh (the viewport on /r). Cap them to the frame
+   inside the mock so short screens don't scroll a dead 48px and the wall scrolls
+   its own content instead. */
+.screenScroll > * {
+  min-height: 100% !important;
+}
+
+.panel {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 18px;
+  gap: 16px;
+  min-width: 0;
+  min-height: 0;
 }
 
 .header {
-  text-align: center;
-  max-width: 560px;
+  flex: 0 0 auto;
 }
 
-/* A phone-shaped frame so a facilitator can point at "this is the player's
-   screen". The player screens render inside verbatim (same components as /r). */
-.frame {
-  position: relative;
-  width: 390px;
-  max-width: 100%;
-  height: min(760px, calc(100dvh - 240px));
-  min-height: 440px;
-  background-color: var(--neon-white);
-  border: 10px solid var(--main-color);
-  border-radius: 40px;
+.modeRow {
+  display: flex;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+/* Vertical step list absorbs spare height so Prev/Next pins to the bottom. */
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1 1 auto;
   overflow-y: auto;
-  overflow-x: hidden;
-  box-shadow: 0 24px 60px rgba(30, 37, 56, 0.28);
+  min-height: 0;
 }
 
-/* The player surfaces size to 100dvh (viewport) by design; inside the frame we
-   pin the single child to the frame height so it fits the device mock. */
-.frame > div {
-  min-height: 100%;
+.caption {
+  flex: 0 0 auto;
+  min-height: 40px;
 }
 
-.controls {
-  width: 100%;
-  max-width: 760px;
+.footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex: 0 0 auto;
+}
+
+/* Stack on narrow widths: device on top, controls below, page allowed to scroll. */
+@media (max-width: 900px) {
+  .wrap {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    align-content: start;
+    height: auto;
+    min-height: 100dvh;
+    gap: 20px;
+  }
+
+  .frame {
+    height: min(720px, calc(100dvh - 260px));
+  }
+
+  .panel {
+    width: 100%;
+    max-width: 460px;
+    margin: 0 auto;
+  }
+
+  .steps {
+    overflow-y: visible;
+  }
 }

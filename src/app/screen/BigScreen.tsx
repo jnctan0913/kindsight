@@ -3,6 +3,7 @@
 import React, {useMemo} from 'react';
 import {useSearchParams} from 'next/navigation';
 
+import {asset} from '../../config';
 import {useT} from '../../i18n';
 import {useScreenRoomState, type ScreenRoomState} from '../../lib/hostRoomSync';
 import {MOCK_HOST_ROOM} from '../../mock/room';
@@ -27,8 +28,11 @@ function defaultState(code: string): ScreenRoomState {
     notesWritten: 0,
     revealTriggered: false,
     highlightEnabled: false,
+    highlightMode: 'grid',
+    highlightTarget: null,
     highlightNotes: [],
     activePrompt: null,
+    closing: false,
     lastJoinedName: null,
     musicOn: true,
     updatedAt: Date.now(),
@@ -48,16 +52,23 @@ export const BigScreen: React.FC = () => {
 
   const state = useMemo(() => {
     if (!code) return null;
-    // Live Supabase room is the source of truth for phase, counts, and
-    // highlights. The briefing frame index and active prompt are host-ephemeral
-    // and published to localStorage for the same-machine "Open big screen"; when
-    // present, overlay them so the projector follows the console's controls.
+    // Live Supabase room is the source of truth for phase, counts, and roster.
+    // The host's ephemeral controls (briefing frame, active prompt, closing, and
+    // the highlight-wall settings) are published to localStorage for the
+    // same-machine "Open big screen"; when present, overlay them so the projector
+    // follows the console instantly, without waiting on a DB round-trip. A
+    // separate-device projector has no synced frame and falls back to the DB.
     if (live.status === 'ready') {
       return synced
         ? {
             ...live.state,
             briefingIndex: synced.briefingIndex,
             activePrompt: synced.activePrompt,
+            closing: synced.closing,
+            highlightEnabled: synced.highlightEnabled,
+            highlightMode: synced.highlightMode,
+            highlightTarget: synced.highlightTarget,
+            highlightNotes: synced.highlightNotes,
           }
         : live.state;
     }
@@ -77,6 +88,24 @@ export const BigScreen: React.FC = () => {
     return (
       <div className={styles.shell}>
         <p className={styles.headline}>{t('screen.missingCode')}</p>
+      </div>
+    );
+  }
+
+  // The room was live and is now gone: send it off gracefully rather than
+  // dropping back to the generic waiting card.
+  if (live.status === 'ended') {
+    return (
+      <div className={styles.shell}>
+        <img
+          src={asset('/assets/kindsight/mascot-farewell.png')}
+          alt=''
+          className={styles.mascot}
+        />
+        <p className={styles.headline}>{t('screen.ended.title')}</p>
+        <p className={styles.subcopy} style={{marginTop: '4vh'}}>
+          {t('screen.ended.subcopy')}
+        </p>
       </div>
     );
   }

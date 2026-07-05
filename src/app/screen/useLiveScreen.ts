@@ -19,6 +19,9 @@ export type LiveScreen =
   | {status: 'disabled'} // no Supabase env: caller uses the localStorage/demo path
   | {status: 'loading'}
   | {status: 'not_found'}
+  // Room was live earlier this session and is now gone (host ended + deleted it):
+  // the projector shows a graceful farewell instead of the generic waiting card.
+  | {status: 'ended'}
   | {status: 'ready'; state: ScreenRoomState};
 
 function joinUrlForCode(code: string): string {
@@ -63,8 +66,15 @@ function mapState(bs: FoundState, skewMs: number): ScreenRoomState {
     notesWritten: bs.counts.notes,
     revealTriggered: bs.phase === 'reveal' || bs.phase === 'wrapup',
     highlightEnabled: bs.highlight_enabled,
-    highlightNotes: bs.highlight.map((h) => ({frame: h.frame, content: h.content})),
+    highlightMode: bs.highlight_mode,
+    highlightTarget: bs.highlight_target,
+    highlightNotes: bs.highlight.map((h) => ({
+      frame: h.frame,
+      content: h.content,
+      recipient: h.recipient,
+    })),
     activePrompt: bs.active_prompt,
+    closing: bs.closing,
     lastJoinedName: null,
     musicOn: bs.music_on,
     updatedAt: Date.now(),
@@ -77,6 +87,9 @@ export function useLiveScreenState(code: string | null): LiveScreen {
   );
   const bsRef = useRef<FoundState | null>(null);
   const skewRef = useRef(0);
+  // Once we have seen the room, a later "not found" from a successful RPC means
+  // the host ended and deleted it (vs. never having connected).
+  const hadRoomRef = useRef(false);
 
   useEffect(() => {
     if (!isSupabaseConfigured()) {
@@ -100,11 +113,12 @@ export function useLiveScreenState(code: string | null): LiveScreen {
         if (cancelled) return;
         if (!bs.found) {
           bsRef.current = null;
-          setResult({status: 'not_found'});
+          setResult({status: hadRoomRef.current ? 'ended' : 'not_found'});
           return;
         }
         skewRef.current = new Date(bs.server_now).getTime() - Date.now();
         bsRef.current = bs;
+        hadRoomRef.current = true;
         setResult({status: 'ready', state: mapState(bs, skewRef.current)});
         if (!sub) {
           sub = subscribeToRoom(bs.room_id, () => {

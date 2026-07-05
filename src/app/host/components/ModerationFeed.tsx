@@ -12,6 +12,8 @@ import {consoleCard, cardHeading, dosisFont} from './hostStyles';
 type Props = {
   notes: HostNote[];
   onRemove: (id: string) => void;
+  // Fill the parent's height and scroll the feed internally (writing dashboard).
+  fill?: boolean;
 };
 
 const frameLabelKey: Record<FrameKey, StringKey> = {
@@ -20,15 +22,29 @@ const frameLabelKey: Record<FrameKey, StringKey> = {
   wish: 'frame.wish.label',
 };
 
-export const ModerationFeed: React.FC<Props> = ({notes, onRemove}) => {
+export const ModerationFeed: React.FC<Props> = ({notes, onRemove, fill = false}) => {
   const t = useT();
   const [pending, setPending] = useState<string | null>(null);
 
   return (
-    <div style={consoleCard}>
+    <div
+      style={
+        fill
+          ? {...consoleCard, height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0}
+          : consoleCard
+      }
+    >
       <span style={cardHeading}>{t('host.mod.title')}</span>
 
-      <ul style={{marginTop: 14, display: 'flex', flexDirection: 'column', gap: 12}}>
+      <ul
+        style={{
+          marginTop: 14,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12,
+          ...(fill ? {flex: '1 1 auto', minHeight: 0, overflowY: 'auto'} : null),
+        }}
+      >
         {notes.map((note) => (
           <li
             key={note.id}

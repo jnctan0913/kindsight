@@ -21,6 +21,41 @@
   user-select: none;
 }
 
+/* Shared interactive feedback for inline-styled components (Button, RosterChip).
+   Adds hover lift, press, and an accessible focus ring without a CSS module. */
+.pressable {
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.pressable:hover {
+  transform: translateY(-1px);
+}
+
+.pressable:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.pressable:focus-visible {
+  outline: 3px solid var(--accent-deep);
+  outline-offset: 3px;
+}
+
+.pressable:disabled {
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pressable,
+  .pressable:hover,
+  .pressable:active {
+    transform: none;
+  }
+}
+
 .container {
   width: 100%;
   padding-left: 20px;

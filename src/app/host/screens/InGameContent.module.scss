@@ -1,0 +1,45 @@
+/* Writing dashboard: a fixed-height board. Left column stacks the round card
+   and a scrolling progress list; the wider middle column is the moderation feed
+   that fills the height and scrolls on its own. */
+.board {
+  display: grid;
+  grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+  gap: 20px;
+  height: 100%;
+  min-height: 0;
+}
+
+.leftCol {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-height: 0;
+}
+
+.progressSlot {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.fillSlot {
+  min-height: 0;
+}
+
+/* Below the console breakpoint the shell stops owning a fixed height, so the
+   board falls back to a normal single-column, naturally-growing stack. */
+@media (max-width: 880px) {
+  .board {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: 0;
+  }
+
+  .leftCol {
+    min-height: 0;
+  }
+
+  .progressSlot,
+  .fillSlot {
+    min-height: 0;
+  }
+}

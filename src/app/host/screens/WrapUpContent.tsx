@@ -1,6 +1,6 @@
 'use client';
 
-import React, {useState} from 'react';
+import React from 'react';
 
 import {useT} from '../../../i18n';
 import {
@@ -10,17 +10,18 @@ import {
   type RevealStatus,
   type WritingMode,
 } from '../../../mock/room';
+import type {HighlightMode} from '../../../lib/types';
+import type {PromptItem} from '../../../lib/hostRoomSync';
 import {RevealTriggerCard} from '../components/RevealTriggerCard';
-import {RevealStatusList} from '../components/RevealStatusList';
-import {HighlightToggle} from '../components/HighlightToggle';
+import {RevealProgressCard} from '../components/RevealProgressCard';
+import {HighlightControls} from '../components/HighlightControls';
 import {PromptDeck} from '../components/PromptDeck';
 import {ModerationFeed} from '../components/ModerationFeed';
-import {EndRoomDialog} from '../components/EndRoomDialog';
-import {consoleCard, cardHeading, consoleGrid, span} from '../components/hostStyles';
+import {consoleCard, cardHeading, dosisFont} from '../components/hostStyles';
 import {components} from '../../../components';
+import styles from './WrapUpContent.module.scss';
 
 type Props = {
-  code: string;
   mode: WritingMode;
   coverage: CoverageEntry[];
   revealStatus: {name: string; status: RevealStatus}[];
@@ -29,14 +30,23 @@ type Props = {
   revealTriggered: boolean;
   onTriggerReveal: () => void;
   onRemoveNote: (id: string) => void;
-  onEndRoom: () => void;
   onHighlightToggle?: (enabled: boolean) => void;
-  activePrompt?: string | null;
-  onPromptPush?: (prompt: string | null) => void;
+  highlightEnabled: boolean;
+  highlightMode: HighlightMode;
+  highlightTarget: string | null;
+  onHighlightMode: (mode: HighlightMode) => void;
+  onHighlightTarget: (name: string | null) => void;
+  prompts: PromptItem[];
+  activePromptId: string | null;
+  onPromptPush: (item: PromptItem | null) => void;
+  onPromptAdd: () => void;
+  onPromptEdit: (id: string, text: string) => void;
+  onPromptRemove: (id: string) => void;
+  closing: boolean;
+  onToggleClosing: () => void;
 };
 
 export const WrapUpContent: React.FC<Props> = ({
-  code,
   mode,
   coverage,
   revealStatus,
@@ -45,80 +55,107 @@ export const WrapUpContent: React.FC<Props> = ({
   revealTriggered,
   onTriggerReveal,
   onRemoveNote,
-  onEndRoom,
   onHighlightToggle,
-  activePrompt,
+  highlightEnabled,
+  highlightMode,
+  highlightTarget,
+  onHighlightMode,
+  onHighlightTarget,
+  prompts,
+  activePromptId,
   onPromptPush,
+  onPromptAdd,
+  onPromptEdit,
+  onPromptRemove,
+  closing,
+  onToggleClosing,
 }) => {
   const t = useT();
-  const [highlightOn, setHighlightOn] = useState(false);
-  const [endOpen, setEndOpen] = useState(false);
 
   const blockers =
     mode === 'freeSelect'
       ? coverage.filter((c) => c.noteCount < REVEAL_FLOOR)
       : [];
 
+  // People with at least one note opted onto the wall, for the 'one person' mode.
+  const optedInPeople = Array.from(
+    new Set(notes.filter((n) => n.shared).map((n) => n.target)),
+  );
+
   return (
-    <div style={{...consoleGrid, alignItems: 'start'}}>
-      <div style={{...span(7), display: 'flex', flexDirection: 'column', gap: 20}}>
-        <RevealTriggerCard
-          triggered={revealTriggered}
-          blockers={blockers}
-          onTrigger={onTriggerReveal}
-        />
-        {revealTriggered && <RevealStatusList statuses={revealStatus} />}
-        <HighlightToggle
-          on={highlightOn}
-          optedInCount={optedInCount}
-          onToggle={() => {
-            setHighlightOn((v) => {
-              const next = !v;
-              onHighlightToggle?.(next);
-              return next;
-            });
-          }}
-        />
-        <PromptDeck activePrompt={activePrompt} onPush={onPromptPush} />
+    <div className={styles.board}>
+      {/* Left column: moderation feed. */}
+      <div className={styles.fillSlot}>
+        <ModerationFeed notes={notes} onRemove={onRemoveNote} fill />
       </div>
 
-      <div style={span(5)}>
-        <ModerationFeed notes={notes} onRemove={onRemoveNote} />
-      </div>
+      {/* Right column: reveal trigger (pre-reveal) or the big-screen controls
+          (wall, prompts, closing) once the reveal is live. */}
+      <div className={styles.col}>
+        {!revealTriggered ? (
+          <RevealTriggerCard
+            triggered={revealTriggered}
+            blockers={blockers}
+            onTrigger={onTriggerReveal}
+          />
+        ) : (
+          <>
+            <RevealProgressCard statuses={revealStatus} />
 
-      <div
-        style={{
-          ...consoleCard,
-          ...span(12),
-          border: '1px solid var(--warn-surface)',
-          backgroundColor: 'var(--warn-surface)',
-        }}
-      >
-        <span style={{...cardHeading, color: 'var(--warn-color)'}}>
-          {t('host.wrap.dangerZone')}
-        </span>
-        <components.Button
-          label={t('host.wrap.end.cta')}
-          onClick={() => setEndOpen(true)}
-          colorScheme='primary'
-          containerStyle={{marginTop: 14, maxWidth: 280}}
-          style={{
-            textTransform: 'none',
-            background: 'var(--warn-color)',
-            color: 'var(--white-color)',
-          }}
-        />
-      </div>
+            <HighlightControls
+              enabled={highlightEnabled}
+              mode={highlightMode}
+              target={highlightTarget}
+              optedInCount={optedInCount}
+              people={optedInPeople}
+              onToggle={(enabled) => onHighlightToggle?.(enabled)}
+              onModeChange={onHighlightMode}
+              onTargetChange={onHighlightTarget}
+            />
 
-      <EndRoomDialog
-        open={endOpen}
-        code={code}
-        onClose={() => setEndOpen(false)}
-        onConfirm={() => {
-          setEndOpen(false);
-          onEndRoom();
-        }}
-      />
+            <PromptDeck
+              prompts={prompts}
+              activePromptId={activePromptId}
+              onPush={onPromptPush}
+              onAdd={onPromptAdd}
+              onEdit={onPromptEdit}
+              onRemove={onPromptRemove}
+            />
+
+            {/* Closing screen control: ends the room on a quiet thank-you instead
+                of leaving the projector on the reveal interstitial. */}
+            <div style={consoleCard}>
+              <span style={cardHeading}>{t('host.wrap.closing.title')}</span>
+              <p className='t14' style={{marginTop: 10, lineHeight: 1.5}}>
+                {t('host.wrap.closing.sub')}
+              </p>
+              {closing && (
+                <p
+                  role='status'
+                  style={{
+                    marginTop: 12,
+                    fontSize: 15,
+                    fontWeight: 600,
+                    color: 'var(--accent-deep)',
+                    fontFamily: dosisFont,
+                  }}
+                >
+                  {t('host.wrap.closing.on')}
+                </p>
+              )}
+              <components.Button
+                label={
+                  closing ? t('host.wrap.closing.stop') : t('host.wrap.closing.cta')
+                }
+                onClick={onToggleClosing}
+                colorScheme={closing ? 'primary' : 'secondary'}
+                containerStyle={{marginTop: 14}}
+                style={{textTransform: 'none', height: 46}}
+              />
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 };

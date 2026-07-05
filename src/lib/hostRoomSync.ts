@@ -3,13 +3,16 @@
 import {useCallback, useEffect, useState} from 'react';
 
 import type {FrameKey} from '../mock/room';
-import type {RoomMode} from './types';
+import type {HighlightMode, RoomMode} from './types';
 
 export type ScreenPhase = 'lobby' | 'briefing' | 'writing' | 'reveal' | 'wrapup';
 
 export type HighlightNote = {
   frame: FrameKey;
   content: string;
+  // Recipient display name, so the projector can filter to one person and label
+  // arranged cards. Opted-in notes already expose this (never the author).
+  recipient: string;
 };
 
 export type ScreenRoomState = {
@@ -29,14 +32,37 @@ export type ScreenRoomState = {
   notesWritten: number;
   revealTriggered: boolean;
   highlightEnabled: boolean;
+  highlightMode: HighlightMode;
+  // Recipient display name to focus in 'person' mode; null otherwise.
+  highlightTarget: string | null;
   highlightNotes: HighlightNote[];
   activePrompt: string | null;
+  // Host is showing the closing / thank-you screen on the projector.
+  closing: boolean;
   lastJoinedName: string | null;
   // Room-level music toggle (host on/off). Track choice, volume, and mute are
   // device-local on the big screen; only this on/off syncs.
   musicOn: boolean;
   updatedAt: number;
 };
+
+// 'person' (Highlight) mode can focus several recipients at once. The selection
+// rides the single highlight_target text column as a newline-joined list, so no
+// schema change is needed (display names never contain newlines).
+const HIGHLIGHT_TARGET_DELIM = '\n';
+
+export function parseHighlightTargets(value: string | null | undefined): string[] {
+  if (!value) return [];
+  return value
+    .split(HIGHLIGHT_TARGET_DELIM)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+export function joinHighlightTargets(names: string[]): string | null {
+  const cleaned = names.map((s) => s.trim()).filter(Boolean);
+  return cleaned.length ? cleaned.join(HIGHLIGHT_TARGET_DELIM) : null;
+}
 
 const STORAGE_PREFIX = 'kindsight.screenState.';
 
@@ -65,6 +91,39 @@ export function readScreenState(code: string): ScreenRoomState | null {
     return JSON.parse(raw) as ScreenRoomState;
   } catch {
     return null;
+  }
+}
+
+// Host's editable discussion-prompt list. Host-ephemeral like the screen state:
+// stored per room so a refresh keeps the host's edits. Only the single *active*
+// prompt is what reaches the projector (via active_prompt on the room / the
+// localStorage screen state), so this list never needs a DB schema.
+export type PromptItem = {id: string; text: string};
+
+const PROMPTS_PREFIX = 'kindsight.prompts.';
+
+function promptsKey(code: string): string {
+  return `${PROMPTS_PREFIX}${code.toUpperCase()}`;
+}
+
+export function readPromptList(code: string): PromptItem[] | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(promptsKey(code));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as PromptItem[]) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function writePromptList(code: string, items: PromptItem[]): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(promptsKey(code), JSON.stringify(items));
+  } catch {
+    /* storage unavailable */
   }
 }
 
@@ -105,6 +164,7 @@ export function removeActiveRoom(code: string): void {
     const rooms = listActiveRooms().filter((r) => r.code !== code.toUpperCase());
     window.localStorage.setItem(ACTIVE_ROOMS_KEY, JSON.stringify(rooms));
     window.localStorage.removeItem(storageKey(code));
+    window.localStorage.removeItem(promptsKey(code));
   } catch {
     /* storage unavailable */
   }

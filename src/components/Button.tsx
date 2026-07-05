@@ -12,6 +12,7 @@ type Props = {
   style?: React.CSSProperties;
   colorScheme?: 'primary' | 'secondary';
   containerStyle?: React.CSSProperties;
+  className?: string;
 };
 
 export const Button: React.FC<Props> = ({
@@ -22,6 +23,7 @@ export const Button: React.FC<Props> = ({
   href = '#',
   containerStyle,
   colorScheme = 'primary',
+  className,
 }) => {
   const btnStyle: React.CSSProperties = {
     height: 50,
@@ -51,6 +53,7 @@ export const Button: React.FC<Props> = ({
       <div style={{...containerStyle}}>
         <Link
           href={href ?? '#'}
+          className={className}
           style={{...btnStyle}}
         >
           {label}
@@ -65,6 +68,7 @@ export const Button: React.FC<Props> = ({
         type='button'
         onClick={onClick}
         disabled={disabled}
+        className={className}
         style={{...btnStyle}}
       >
         {label}

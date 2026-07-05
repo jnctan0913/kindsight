@@ -5,9 +5,21 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import styles from '@/app/reveal-demo/reveal.module.scss';
 import {NoteCard} from '@/app/reveal-demo/NoteCard';
 import {HoldToRevealButton} from '@/app/reveal-demo/HoldToRevealButton';
-import {renderWallImage, saveWallImage, type ExportFonts} from '@/lib/export';
+import {
+  renderShareImage,
+  saveWallImage,
+  saveImages,
+  type ExportFonts,
+  type ShareCardStrings,
+} from '@/lib/export';
+import {
+  SHARE_BACKGROUNDS,
+  SHARE_FORMATS,
+  type ShareFormat,
+} from '@/lib/shareBackgrounds';
 import {asset} from '@/config';
 import {useT} from '@/i18n';
+import type {StringKey} from '@/i18n';
 import {useRoomStore} from '@/stores/room';
 
 // Lifted verbatim from reveal-demo/RevealDemo.tsx: next/font hashes the family
@@ -44,16 +56,37 @@ export const RevealContent: React.FC = () => {
   const [soundOn, setSoundOn] = useState(true);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [toast, setToast] = useState('');
+  const [markedDone, setMarkedDone] = useState(false);
 
-  const exportBlobRef = useRef<Blob | null>(null);
-  const exportSigRef = useRef<string | null>(null);
-  const [exportReady, setExportReady] = useState(false);
-  const [exporting, setExporting] = useState(false);
   const [overlayUrl, setOverlayUrl] = useState<string | null>(null);
   const overlayCloseRef = useRef<HTMLButtonElement | null>(null);
   const exportBtnRef = useRef<HTMLButtonElement | null>(null);
 
+  // Share composer state.
+  const [composerOpen, setComposerOpen] = useState(false);
+  const [format, setFormat] = useState<ShareFormat>('wallpaper');
+  const [bgIndex, setBgIndex] = useState(0);
+  const [noteIndex, setNoteIndex] = useState(0);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewRendering, setPreviewRendering] = useState(false);
+  const [batchRendering, setBatchRendering] = useState(false);
+  const previewBlobRef = useRef<Blob | null>(null);
+
   const count = me?.wall_count ?? 0;
+  const noteCount = wall?.length ?? 0;
+
+  const shareStrings = useCallback(
+    (): ShareCardStrings => ({
+      wordmark: 'Kindsight',
+      attribution: t('player.share.attribution'),
+      frameLabel: {
+        moment: t('frame.moment.label'),
+        strength: t('frame.strength.label'),
+        wish: t('frame.wish.label'),
+      },
+    }),
+    [t],
+  );
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -82,67 +115,61 @@ export const RevealContent: React.FC = () => {
     void loadWall();
   }, [stage, seq, loadWall]);
 
-  // Pre-render the PNG blob before the export tap. Rendering ahead of the
-  // gesture is the iOS Safari fix: navigator.share must be called synchronously
-  // inside the tap, so no async work can happen after the user taps. The
-  // signature (title + note content, locale-sensitive) skips redundant renders
-  // when only a share toggle flips.
+  // Keep the selected note index in range as the wall loads or changes.
   useEffect(() => {
-    if (stage !== 'wall' || !wall || wall.length === 0) return;
-    const sig = [
-      t('player.wall.header'),
-      ...wall.map((n) => `${n.frame}\u0000${n.content}`),
-    ].join('\u0001');
-    if (sig === exportSigRef.current) return;
-    exportSigRef.current = sig;
-    setExportReady(false);
+    if (noteIndex > noteCount - 1) setNoteIndex(Math.max(0, noteCount - 1));
+  }, [noteCount, noteIndex]);
+
+  // Render the previewed card whenever the selection changes. The blob is kept
+  // in a ref so the save tap stays synchronous (the iOS share-gesture rule).
+  useEffect(() => {
+    if (!composerOpen || !wall || wall.length === 0) return;
+    const note = wall[Math.min(noteIndex, wall.length - 1)];
+    if (!note) return;
+    const bg = SHARE_BACKGROUNDS[bgIndex];
 
     let cancelled = false;
-    const run = () => {
-      renderWallImage(
-        wall.map((n) => ({frame: n.frame, content: n.content})),
-        {
-          fonts: resolveFonts(),
-          strings: {
-            wordmark: 'Kindsight',
-            title: t('player.wall.header'),
-            date: new Date().toLocaleDateString(),
-            footerEN:
-              'Written anonymously by the people in your room. Kindsight.',
-            footerZH: '这间房里的人，匿名为你写下。Kindsight。',
-            frameLabel: {
-              moment: t('frame.moment.label'),
-              strength: t('frame.strength.label'),
-              wish: t('frame.wish.label'),
-            },
-          },
-          mascotSrc: asset(MASCOT),
+    setPreviewRendering(true);
+    renderShareImage(
+      {frame: note.frame, content: note.content},
+      {
+        format,
+        fonts: resolveFonts(),
+        strings: shareStrings(),
+        background: {
+          src: asset(bg.src),
+          tone: bg.tone,
+          anchor: format === 'wallpaper' ? bg.wallpaperAnchor : bg.squareAnchor,
+          focus: bg.squareFocus,
         },
-      )
-        .then((blob) => {
-          if (cancelled) return;
-          exportBlobRef.current = blob;
-          setExportReady(true);
-        })
-        .catch(() => {
-          if (cancelled) return;
-          exportSigRef.current = null;
-          setExportReady(false);
+      },
+    )
+      .then((blob) => {
+        if (cancelled) return;
+        previewBlobRef.current = blob;
+        const url = URL.createObjectURL(blob);
+        setPreviewUrl((old) => {
+          if (old) URL.revokeObjectURL(old);
+          return url;
         });
-    };
-    const ric = (
-      window as unknown as {requestIdleCallback?: (cb: () => void) => number}
-    ).requestIdleCallback;
-    const handle = ric ? ric(run) : window.setTimeout(run, 0);
+      })
+      .finally(() => {
+        if (!cancelled) setPreviewRendering(false);
+      });
     return () => {
       cancelled = true;
-      const cic = (
-        window as unknown as {cancelIdleCallback?: (h: number) => void}
-      ).cancelIdleCallback;
-      if (cic) cic(handle);
-      else window.clearTimeout(handle);
     };
-  }, [stage, wall, t]);
+  }, [composerOpen, format, bgIndex, noteIndex, wall, shareStrings]);
+
+  // Revoke the preview object URL when the composer closes.
+  useEffect(() => {
+    if (composerOpen) return;
+    setPreviewUrl((old) => {
+      if (old) URL.revokeObjectURL(old);
+      return null;
+    });
+    previewBlobRef.current = null;
+  }, [composerOpen]);
 
   useEffect(() => {
     if (overlayUrl) overlayCloseRef.current?.focus();
@@ -153,19 +180,63 @@ export const RevealContent: React.FC = () => {
     setStage('wall');
   }, [setReveal]);
 
-  const onExportTap = useCallback(() => {
-    const blob = exportBlobRef.current;
+  // Signals the host's reveal-status list that this player has finished reading.
+  const onDoneReading = useCallback(() => {
+    setMarkedDone(true);
+    void setReveal('done');
+  }, [setReveal]);
+
+  // Single save. Runs synchronously off the pre-rendered preview blob so iOS
+  // keeps the share gesture alive.
+  const onSaveThis = useCallback(() => {
+    const blob = previewBlobRef.current;
     if (!blob) return;
-    setExporting(true);
     saveWallImage(blob, {
-      fileName: 'kindsight-wall.png',
+      fileName: `kindsight-${format}-${noteIndex + 1}.png`,
       onLongPress: (url) => setOverlayUrl(url),
-    })
-      .then((result) => {
-        if (result !== 'longpress') setToast(t('player.wall.export.success'));
-      })
-      .finally(() => setExporting(false));
-  }, [t]);
+    }).then((result) => {
+      if (result !== 'longpress') setToast(t('player.share.success'));
+    });
+  }, [t, format, noteIndex]);
+
+  // Batch save: one image per note, rotating backgrounds for variety.
+  const onSaveAll = useCallback(async () => {
+    if (!wall || wall.length === 0 || batchRendering) return;
+    setBatchRendering(true);
+    try {
+      const items: {blob: Blob; fileName: string}[] = [];
+      for (let i = 0; i < wall.length; i++) {
+        const note = wall[i];
+        const bg = SHARE_BACKGROUNDS[i % SHARE_BACKGROUNDS.length];
+        const blob = await renderShareImage(
+          {frame: note.frame, content: note.content},
+          {
+            format,
+            fonts: resolveFonts(),
+            strings: shareStrings(),
+            background: {
+              src: asset(bg.src),
+              tone: bg.tone,
+              anchor:
+                format === 'wallpaper' ? bg.wallpaperAnchor : bg.squareAnchor,
+              focus: bg.squareFocus,
+            },
+          },
+        );
+        items.push({blob, fileName: `kindsight-${format}-${i + 1}.png`});
+      }
+      const result = await saveImages(items);
+      if (result !== 'longpress') setToast(t('player.share.success'));
+    } finally {
+      setBatchRendering(false);
+    }
+  }, [wall, batchRendering, format, shareStrings, t]);
+
+  const openComposer = useCallback(() => setComposerOpen(true), []);
+  const closeComposer = useCallback(() => {
+    setComposerOpen(false);
+    exportBtnRef.current?.focus();
+  }, []);
 
   const closeOverlay = useCallback(() => {
     setOverlayUrl(null);
@@ -232,7 +303,14 @@ export const RevealContent: React.FC = () => {
 
   const renderUnlock = () => (
     <div key='unlock' className={`${styles.stage} ${styles.ritual}`}>
-      <h2 style={{marginTop: 64, textAlign: 'center', maxWidth: 280}}>
+      <h2
+        style={{
+          marginTop: 64,
+          textAlign: 'center',
+          maxWidth: 260,
+          textWrap: 'balance',
+        }}
+      >
         {t('player.reveal.invite.title')}
       </h2>
 
@@ -314,15 +392,160 @@ export const RevealContent: React.FC = () => {
         <div className={styles.pinnedBar}>
           <button
             ref={exportBtnRef}
-            className={styles.primaryButton}
-            style={{marginTop: 0}}
-            disabled={!exportReady || exporting}
-            onClick={onExportTap}
+            className={`${styles.primaryButton} pressable`}
+            style={{
+              marginTop: 0,
+              borderRadius: 50,
+              boxShadow: 'var(--shadow-soft), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+            }}
+            onClick={openComposer}
           >
-            {exporting || !exportReady
-              ? t('player.wall.export.rendering')
-              : t('player.wall.export.cta')}
+            {t('player.wall.export.cta')}
           </button>
+          {markedDone ? (
+            <p
+              role='status'
+              className={styles.wallHint}
+              style={{marginTop: 10, textAlign: 'center'}}
+            >
+              {t('player.wall.done.confirm')}
+            </p>
+          ) : (
+            <button
+              className={styles.soundToggle}
+              style={{marginTop: 10}}
+              onClick={onDoneReading}
+            >
+              {t('player.wall.done.cta')}
+            </button>
+          )}
+        </div>
+      )}
+
+      {composerOpen && wall && wall.length > 0 && (
+        <div
+          className={styles.composer}
+          role='dialog'
+          aria-modal='true'
+          aria-label={t('player.share.title')}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') closeComposer();
+          }}
+        >
+          <div className={styles.composerScroll}>
+            <div className={styles.composerHead}>
+              <h3>{t('player.share.title')}</h3>
+              <p>{t('player.share.subtitle')}</p>
+            </div>
+
+            <div
+              className={styles.previewWrap}
+              data-format={format}
+              aria-busy={previewRendering}
+            >
+              {previewUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={previewUrl} alt={t('player.wall.export.aria')} />
+              ) : (
+                <div className={styles.previewSkeleton}>
+                  {t('player.share.rendering')}
+                </div>
+              )}
+            </div>
+
+            <div
+              className={styles.segmented}
+              role='group'
+              aria-label={t('player.share.title')}
+            >
+              {SHARE_FORMATS.map((f) => (
+                <button
+                  key={f.id}
+                  className={`pressable ${format === f.id ? styles.segActive : ''}`}
+                  aria-pressed={format === f.id}
+                  onClick={() => setFormat(f.id)}
+                >
+                  {t(`player.share.format.${f.id}` as StringKey)}
+                </button>
+              ))}
+            </div>
+
+            <div
+              className={styles.bgRow}
+              role='group'
+              aria-label={t('player.share.background.aria')}
+            >
+              {SHARE_BACKGROUNDS.map((b, i) => (
+                <button
+                  key={b.id}
+                  className={`pressable ${styles.bgThumb} ${bgIndex === i ? styles.bgThumbActive : ''}`}
+                  style={{backgroundImage: `url(${asset(b.src)})`}}
+                  aria-pressed={bgIndex === i}
+                  aria-label={t(`player.share.bg.${b.id}` as StringKey)}
+                  onClick={() => setBgIndex(i)}
+                >
+                  <span>{t(`player.share.bg.${b.id}` as StringKey)}</span>
+                </button>
+              ))}
+            </div>
+
+            {wall.length > 1 && (
+              <div
+                className={styles.noteRow}
+                role='group'
+                aria-label={t('player.share.note.label')}
+              >
+                {wall.map((n, i) => (
+                  <button
+                    key={n.note_id}
+                    className={`pressable ${styles.noteChip} ${noteIndex === i ? styles.noteChipActive : ''}`}
+                    aria-pressed={noteIndex === i}
+                    onClick={() => setNoteIndex(i)}
+                  >
+                    <span className={styles.noteChipPill}>
+                      {t(`frame.${n.frame}.label` as StringKey)}
+                    </span>
+                    <span className={styles.noteChipText}>{n.content}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className={styles.composerActions}>
+            <button
+              className={`${styles.primaryButton} pressable`}
+              style={{
+                marginTop: 0,
+                borderRadius: 50,
+                boxShadow:
+                  'var(--shadow-soft), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+              }}
+              disabled={previewRendering || batchRendering || !previewUrl}
+              onClick={onSaveThis}
+            >
+              {previewRendering ? t('player.share.rendering') : t('player.share.save')}
+            </button>
+            <div className={styles.composerActionsRow}>
+              {wall.length > 1 && (
+                <button
+                  className={`${styles.composerGhost} pressable`}
+                  disabled={batchRendering}
+                  onClick={onSaveAll}
+                >
+                  {batchRendering
+                    ? t('player.share.batch')
+                    : t('player.share.saveAll')}
+                </button>
+              )}
+              <button
+                className={`${styles.composerGhost} pressable`}
+                onClick={closeComposer}
+              >
+                {t('player.wall.export.close')}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -343,8 +566,10 @@ export const RevealContent: React.FC = () => {
           }}
         >
           <p>{t('player.wall.export.fallback')}</p>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={overlayUrl} alt={t('player.wall.export.aria')} />
+          <div className={styles.exportOverlayImageWrap}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={overlayUrl} alt={t('player.wall.export.aria')} />
+          </div>
           <button
             ref={overlayCloseRef}
             className={styles.exportOverlayClose}

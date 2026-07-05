@@ -36,9 +36,12 @@ export type HostNote = {
   target: string;
   frame: FrameKey;
   content: string;
+  // Recipient opted this note onto the big-screen highlight wall.
+  shared?: boolean;
 };
 
-export type RevealStatus = 'holding' | 'reading' | 'finished';
+// Mirrors the DB reveal_state enum so the console shows real player progress.
+export type RevealStatus = 'locked' | 'holding' | 'reading' | 'done';
 
 export type CoverageEntry = {
   name: string;
@@ -110,12 +113,14 @@ export const MOCK_MOD_FEED: HostNote[] = [
     frame: 'moment',
     content:
       'I noticed you stayed behind to help repack the kits when everyone else left.',
+    shared: true,
   },
   {
     id: 'n2',
     target: 'Dana',
     frame: 'wish',
     content: 'I hope you get to lead the next client pitch.',
+    shared: true,
   },
   {
     id: 'n3',
@@ -123,6 +128,7 @@ export const MOCK_MOD_FEED: HostNote[] = [
     frame: 'strength',
     content:
       "I think you're strong at turning a messy discussion into clear next steps.",
+    shared: true,
   },
   {
     id: 'n4',
@@ -139,14 +145,14 @@ export const MOCK_MOD_FEED: HostNote[] = [
 ];
 
 export const MOCK_REVEAL_STATUS: {name: string; status: RevealStatus}[] = [
-  {name: 'Amira', status: 'finished'},
+  {name: 'Amira', status: 'done'},
   {name: 'Ben', status: 'reading'},
   {name: 'Chen', status: 'reading'},
-  {name: 'Dana', status: 'finished'},
+  {name: 'Dana', status: 'done'},
   {name: 'Farah', status: 'holding'},
   {name: 'Mei', status: 'reading'},
-  {name: 'Noah', status: 'holding'},
-  {name: 'Priya', status: 'finished'},
+  {name: 'Noah', status: 'locked'},
+  {name: 'Priya', status: 'done'},
   {name: 'Tariq', status: 'reading'},
   {name: 'Wei', status: 'reading'},
 ];

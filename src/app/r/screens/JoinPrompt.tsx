@@ -10,6 +10,8 @@ import {Routes} from '@/routes';
 import type {StringKey} from '@/i18n';
 import type {JoinFailure} from '@/stores/room';
 
+import styles from '../player.module.scss';
+
 const normalize = (value: string) =>
   value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
 
@@ -47,6 +49,7 @@ export const JoinPrompt: React.FC<Props> = ({initialCode, failure, onJoin}) => {
 
   return (
     <components.Screen>
+      <div className={styles.aura} aria-hidden='true' />
       <components.Header rightSlot={<LanguageToggle />} />
 
       <main
@@ -61,15 +64,21 @@ export const JoinPrompt: React.FC<Props> = ({initialCode, failure, onJoin}) => {
         }}
       >
         <img
-          src={asset('/assets/kindsight/kindsight-logo-transparent.png')}
-          alt='Kindsight'
-          style={{width: '52%', maxWidth: 240, height: 'auto'}}
+          src={asset('/assets/kindsight/kindsight-mascot-only.png')}
+          alt=''
+          aria-hidden='true'
+          className={`${styles.mascot} ${styles.bob}`}
         />
-        <p className='t14' style={{marginTop: 2, textAlign: 'center'}}>
+        <img
+          src={asset('/assets/kindsight/kindsight-wordmark.png')}
+          alt='Kindsight'
+          style={{width: '48%', maxWidth: 210, height: 'auto', marginTop: 12}}
+        />
+        <p className='t14' style={{marginTop: 6, textAlign: 'center'}}>
           {t('app.tagline')}
         </p>
 
-        <h2 style={{marginTop: 32, textAlign: 'center'}}>{t('player.join.title')}</h2>
+        <h2 style={{marginTop: 28, textAlign: 'center'}}>{t('player.join.title')}</h2>
 
         <form
           onSubmit={(e) => {
@@ -149,6 +158,7 @@ export const JoinPrompt: React.FC<Props> = ({initialCode, failure, onJoin}) => {
             onClick={() => void submit()}
             colorScheme='secondary'
             disabled={code.length < 6 || submitting}
+            className='pressable'
             containerStyle={{marginTop: 24}}
             style={{
               textTransform: 'none',
@@ -161,7 +171,7 @@ export const JoinPrompt: React.FC<Props> = ({initialCode, failure, onJoin}) => {
         <div style={{marginTop: 'auto', paddingTop: 32, width: '100%', maxWidth: 400}}>
           <Link
             href={Routes.HOST}
-            className='clickable'
+            className='clickable pressable'
             style={{
               height: 52,
               width: '100%',

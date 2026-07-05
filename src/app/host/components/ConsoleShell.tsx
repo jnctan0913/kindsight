@@ -7,8 +7,10 @@ import {LanguageToggle, useT} from '../../../i18n';
 import type {StringKey} from '../../../i18n';
 import {PhaseStepper, type HostPhase} from './PhaseStepper';
 import {EndRoomDialog} from './EndRoomDialog';
+import {FacilitatorGuideModal, HelpModal} from './GuideModal';
 import {HostIcon} from './HostIcon';
 import {MusicDock} from './MusicDock';
+import {SessionSettingsModal, type SessionSettings} from './SessionSettingsModal';
 import styles from './ConsoleShell.module.scss';
 
 type BaseProps = {
@@ -17,6 +19,9 @@ type BaseProps = {
   primaryAction?: React.ReactNode;
   // Preview rail width per phase (the projector iframe scales to fill it).
   previewWidth?: number;
+  // Fill mode: the body owns a fixed height and inner panels scroll on their
+  // own (used by the writing dashboard so it reads as a single control surface).
+  fillBody?: boolean;
   onSignOut?: () => void;
   onHome?: () => void;
 };
@@ -34,6 +39,8 @@ type GameProps = BaseProps & {
   // Room music on/off (big screen is the speaker; sidebar is the remote).
   musicOn?: boolean;
   onToggleMusic?: () => void;
+  // Editable session parameters (rounds, duration). Omit to hide the button.
+  sessionSettings?: SessionSettings;
 };
 
 type HubProps = BaseProps & {
@@ -62,6 +69,10 @@ export const ConsoleShell: React.FC<Props> = (props) => {
   }, [hasPreview]);
 
   const [endOpen, setEndOpen] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const sessionSettings = isHub ? undefined : props.sessionSettings;
 
   return (
     <div className={styles.shell}>
@@ -112,6 +123,16 @@ export const ConsoleShell: React.FC<Props> = (props) => {
                 {t('host.hub.home')}
               </button>
             )}
+            {sessionSettings && (
+              <button
+                type='button'
+                className={`clickable ${styles.navItem}`}
+                onClick={() => setSettingsOpen(true)}
+              >
+                <HostIcon name='settings' size={16} color='var(--neon-white)' />
+                {t('host.settings.nav')}
+              </button>
+            )}
             {props.onEndRoom && (
               <button
                 type='button'
@@ -147,6 +168,22 @@ export const ConsoleShell: React.FC<Props> = (props) => {
               {t('host.hub.home')}
             </button>
           )}
+          <button
+            type='button'
+            className={`clickable ${styles.navItem}`}
+            onClick={() => setGuideOpen(true)}
+          >
+            <HostIcon name='guide' size={16} color='var(--neon-white)' />
+            {t('host.guide.cta')}
+          </button>
+          <button
+            type='button'
+            className={`clickable ${styles.navItem}`}
+            onClick={() => setHelpOpen(true)}
+          >
+            <HostIcon name='help' size={16} color='var(--neon-white)' />
+            {t('host.help.cta')}
+          </button>
           {props.onSignOut && (
             <button
               type='button'
@@ -192,18 +229,28 @@ export const ConsoleShell: React.FC<Props> = (props) => {
           </div>
         )}
 
-        <div className={styles.scrollArea}>
+        <div
+          className={`${styles.scrollArea} ${
+            props.fillBody ? styles.scrollAreaFill : ''
+          }`}
+        >
           <main
-            className={
+            className={`${
               hasPreview && previewOpen ? styles.contentWithPanel : styles.content
-            }
+            } ${props.fillBody ? styles.contentFill : ''}`}
             style={
               hasPreview && previewOpen
                 ? ({'--preview-w': `${props.previewWidth ?? 400}px`} as React.CSSProperties)
                 : undefined
             }
           >
-            <div className={styles.primaryContent}>{props.children}</div>
+            <div
+              className={`${styles.primaryContent} ${
+                props.fillBody ? styles.primaryContentFill : ''
+              }`}
+            >
+              {props.children}
+            </div>
             {hasPreview && previewOpen && (
               <aside className={styles.rightPanel}>{props.rightPanel}</aside>
             )}
@@ -226,6 +273,17 @@ export const ConsoleShell: React.FC<Props> = (props) => {
           }}
         />
       )}
+
+      {sessionSettings && (
+        <SessionSettingsModal
+          open={settingsOpen}
+          onClose={() => setSettingsOpen(false)}
+          {...sessionSettings}
+        />
+      )}
+
+      <FacilitatorGuideModal open={guideOpen} onClose={() => setGuideOpen(false)} />
+      <HelpModal open={helpOpen} onClose={() => setHelpOpen(false)} />
     </div>
   );
 };

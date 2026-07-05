@@ -2,12 +2,15 @@
 
 import React, {useEffect, useMemo, useState} from 'react';
 
+import {asset} from '@/config';
 import {components} from '@/components';
 import {LanguageToggle, useT} from '@/i18n';
 import type {StringKey} from '@/i18n';
 import {assignAvatars} from '@/lib/avatar';
 import {useRoomStore} from '@/stores/room';
 import type {NoteFrame, TargetNote} from '@/lib/types';
+
+import styles from '../player.module.scss';
 
 const MAX = 240;
 
@@ -26,14 +29,6 @@ function frameStem(f: NoteFrame): StringKey {
   const meta = FRAMES.find((x) => x.key === f);
   return meta ? meta.stem : 'frame.moment.stem';
 }
-
-const cardStyle: React.CSSProperties = {
-  backgroundColor: 'var(--white-color)',
-  borderRadius: 'var(--radius-card)',
-  boxShadow: 'var(--shadow-soft)',
-  padding: 16,
-  marginTop: 14,
-};
 
 export const WriteContent: React.FC = () => {
   const t = useT();
@@ -143,26 +138,26 @@ export const WriteContent: React.FC = () => {
 
   const shell = (children: React.ReactNode) => (
     <components.Screen>
+      <div className={styles.aura} aria-hidden='true' />
       <components.Header rightSlot={<LanguageToggle />} />
       {children}
     </components.Screen>
   );
 
-  const centeredCard = (title: string, body: string) =>
+  const centeredCard = (title: string, body: string, mascotPose: string) =>
     shell(
-      <main
-        className='container'
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          textAlign: 'center',
-          padding: 24,
-        }}
-      >
-        <div style={{...cardStyle, maxWidth: 420, width: '100%'}}>
+      <main className={`container scrollable ${styles.center}`}>
+        <img
+          src={asset(`/assets/kindsight/${mascotPose}`)}
+          alt=''
+          aria-hidden='true'
+          className={`${styles.mascotSm} ${styles.bob}`}
+        />
+        <div
+          className={`${styles.card} ${styles.cardWide} ${styles.rise}`}
+          style={{marginTop: 20}}
+          aria-live='polite'
+        >
           <h2 style={{color: 'var(--main-color)'}}>{title}</h2>
           <p className='t16' style={{marginTop: 12}}>
             {body}
@@ -186,14 +181,22 @@ export const WriteContent: React.FC = () => {
   // Mode A, between assignments: nothing to write until the next round hands
   // this player a person.
   if (isModeA && !assignment) {
-    return centeredCard(t('player.write.waiting.title'), t('player.write.waiting.body'));
+    return centeredCard(
+      t('player.write.waiting.title'),
+      t('player.write.waiting.body'),
+      'mascot-peek.png',
+    );
   }
 
   // Mode A, already sent this round's note: the round stays open but this
   // player is done for now.
   const submittedThisRound = me.sent.some((s) => !s.is_bonus && s.round === currentRound);
   if (isModeA && assignment && submittedThisRound) {
-    return centeredCard(t('player.write.done.title'), t('player.write.done.body'));
+    return centeredCard(
+      t('player.write.done.title'),
+      t('player.write.done.body'),
+      'mascot-cheer.png',
+    );
   }
 
   const resolvedTargetName = isModeA
@@ -209,47 +212,58 @@ export const WriteContent: React.FC = () => {
         ? t('player.write.nudge.generic')
         : '';
 
-  const frameButtonStyle = (active: boolean): React.CSSProperties => ({
-    flex: '1 1 0',
-    minHeight: 48,
-    padding: '0 12px',
-    borderRadius: 'var(--radius-pill)',
-    backgroundColor: active ? 'var(--accent-color)' : 'var(--white-color)',
-    border: active ? '2px solid var(--accent-color)' : '2px solid var(--border-color)',
-    boxShadow: 'var(--shadow-soft)',
-    fontSize: 15,
-    fontWeight: 600,
-    fontFamily: 'var(--font-dosis), var(--font-noto-sc), sans-serif',
-    color: 'var(--main-color)',
-    transition: 'border-color 150ms ease-in-out, background-color 150ms ease-in-out',
-  });
+  const progressPct =
+    roundCount && roundCount > 0
+      ? Math.min(100, Math.round((currentRound / roundCount) * 100))
+      : 0;
 
   return shell(
     <>
       <main className='container scrollable' style={{flex: 1, paddingBottom: 20}}>
-        <h2 style={{marginTop: 16, marginBottom: isModeA ? 4 : 16}}>{t('player.write.title')}</h2>
-        {isModeA && (
-          <p className='t14' style={{marginBottom: 16, color: 'var(--text-color)'}}>
-            {t('player.write.round', {n: currentRound, total: roundCount ?? currentRound})}
-          </p>
-        )}
+        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16, gap: 12}}>
+          <div style={{display: 'flex', alignItems: 'center', gap: 10, minWidth: 0}}>
+            <img
+              src={asset('/assets/kindsight/mascot-write.png')}
+              alt=''
+              aria-hidden='true'
+              style={{width: 44, height: 44, objectFit: 'contain', flexShrink: 0}}
+            />
+            <h2 style={{margin: 0}}>{t('player.write.title')}</h2>
+          </div>
+          <span className={styles.modePill} style={{flexShrink: 0}}>
+            {isModeA ? t('player.briefing.mode.a') : t('player.briefing.mode.b')}
+          </span>
+        </div>
 
         {isModeA ? (
-          <div style={cardStyle}>
-            <span className='t12' style={{color: 'var(--text-color)'}}>
-              {t('player.write.to.assigned')}
-            </span>
-            <p style={{marginTop: 6, fontSize: 18, fontWeight: 600, color: 'var(--main-color)'}}>
-              {resolvedTargetName}
-            </p>
-          </div>
+          <>
+            {roundCount && roundCount > 0 && (
+              <div className={styles.progressRow} style={{marginTop: 14}}>
+                <div className={styles.progressTrack}>
+                  <div className={styles.progressFill} style={{width: `${progressPct}%`}} />
+                </div>
+                <span className={styles.progressLabel}>
+                  {t('player.write.round', {n: currentRound, total: roundCount})}
+                </span>
+              </div>
+            )}
+            <div className={`${styles.targetBanner} ${styles.rise}`} style={{marginTop: 14}}>
+              <components.Avatar avatarId={avatars.get(assignment?.target_id ?? '')} size='md' />
+              <div>
+                <span className={styles.targetLabel}>{t('player.write.to.assigned')}</span>
+                <p className={styles.targetName} style={{marginTop: 4}}>
+                  {resolvedTargetName}
+                </p>
+              </div>
+            </div>
+          </>
         ) : (
           <>
             <label
               className='t14'
               style={{
                 display: 'block',
-                marginTop: 4,
+                marginTop: 16,
                 marginBottom: 10,
                 fontWeight: 600,
                 color: 'var(--main-color)',
@@ -281,25 +295,15 @@ export const WriteContent: React.FC = () => {
         )}
 
         {resolvedTarget && (
-          <div>
+          <div className={styles.rise}>
             {/* Read-first accordion: see what this person already has before adding. */}
             <button
               onClick={() => void togglePrior()}
               aria-expanded={priorOpen}
-              className='clickable'
-              style={{
-                marginTop: 18,
-                padding: 0,
-                background: 'none',
-                border: 'none',
-                textAlign: 'left',
-                fontSize: 14,
-                fontWeight: 600,
-                color: 'var(--accent-deep)',
-                fontFamily: 'var(--font-dosis), var(--font-noto-sc), sans-serif',
-              }}
+              className={`clickable ${styles.accordionToggle}`}
+              style={{marginTop: 18}}
             >
-              {priorOpen ? '\u25BE ' : '\u25B8 '}
+              {priorOpen ? '\u25BE' : '\u25B8'}
               {t('player.write.prior.toggle', {name: resolvedTargetName})}
             </button>
             {priorOpen && (
@@ -310,7 +314,7 @@ export const WriteContent: React.FC = () => {
                   </p>
                 ) : priorNotes && priorNotes.length > 0 ? (
                   priorNotes.map((note, i) => (
-                    <div key={i} style={{...cardStyle, marginTop: 8}}>
+                    <div key={i} className={styles.card} style={{marginTop: 8}}>
                       <components.FrameTag label={t(frameLabel(note.frame))} />
                       <p className='t14' style={{marginTop: 8, color: 'var(--main-color)'}}>
                         {note.content}
@@ -318,9 +322,25 @@ export const WriteContent: React.FC = () => {
                     </div>
                   ))
                 ) : (
-                  <p className='t14' style={{marginTop: 8, fontStyle: 'italic'}}>
-                    {t('player.write.prior.empty')}
-                  </p>
+                  <div
+                    className={styles.card}
+                    style={{
+                      marginTop: 8,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12,
+                    }}
+                  >
+                    <img
+                      src={asset('/assets/kindsight/empty-notes-soft.png')}
+                      alt=''
+                      aria-hidden='true'
+                      style={{width: 72, height: 72, objectFit: 'contain', flexShrink: 0}}
+                    />
+                    <p className='t14' style={{fontStyle: 'italic'}}>
+                      {t('player.write.prior.empty')}
+                    </p>
+                  </div>
                 )}
               </div>
             )}
@@ -333,7 +353,7 @@ export const WriteContent: React.FC = () => {
               >
                 {t('player.write.frame.label')}
               </label>
-              <div style={{display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10}}>
+              <div className={styles.frameRow} style={{marginTop: 10}}>
                 {FRAMES.map((f) => {
                   const active = frame === f.key;
                   return (
@@ -341,8 +361,7 @@ export const WriteContent: React.FC = () => {
                       key={f.key}
                       onClick={() => setFrame(f.key)}
                       aria-pressed={active}
-                      className='clickable'
-                      style={frameButtonStyle(active)}
+                      className={`clickable ${styles.frameBtn} ${active ? styles.frameBtnActive : ''}`}
                     >
                       {t(f.label)}
                     </button>
@@ -359,20 +378,7 @@ export const WriteContent: React.FC = () => {
                 onChange={(e) => setContent(e.target.value)}
                 aria-label={t('player.write.title')}
                 placeholder={frame ? t(frameStem(frame)) : t('player.write.placeholder')}
-                style={{
-                  width: '100%',
-                  minHeight: 120,
-                  resize: 'vertical',
-                  padding: 14,
-                  borderRadius: 'var(--radius-card)',
-                  border: '2px solid var(--border-color)',
-                  backgroundColor: 'var(--white-color)',
-                  boxShadow: 'var(--shadow-soft)',
-                  fontSize: 16,
-                  lineHeight: 1.5,
-                  color: 'var(--main-color)',
-                  fontFamily: 'var(--font-dosis), var(--font-noto-sc), sans-serif',
-                }}
+                className={styles.composer}
               />
               <div
                 style={{
@@ -390,7 +396,10 @@ export const WriteContent: React.FC = () => {
                 >
                   {nudge}
                 </span>
-                <span className='t12' style={{color: 'var(--text-color)', flexShrink: 0}}>
+                <span
+                  className={`t12 ${styles.counter}`}
+                  style={{color: 'var(--text-color)', flexShrink: 0}}
+                >
                   {t('player.write.counter', {n: content.length, max: MAX})}
                 </span>
               </div>
@@ -414,11 +423,12 @@ export const WriteContent: React.FC = () => {
           </div>
         )}
       </main>
-      <footer style={{padding: 20}}>
+      <footer className={styles.footer}>
         <components.Button
           label={sending ? t('player.write.sending') : t('player.write.send')}
           onClick={() => void handleSend()}
           colorScheme='secondary'
+          className='pressable'
           style={{
             textTransform: 'none',
             opacity: canSend ? 1 : 0.5,

@@ -12,6 +12,7 @@ type Props = {
   timer: string;
   paused: boolean;
   graceRunning: boolean;
+  roundsComplete: boolean;
   onTogglePause: () => void;
   onAdvance: () => void;
 };
@@ -22,10 +23,12 @@ export const RoundControlCard: React.FC<Props> = ({
   timer,
   paused,
   graceRunning,
+  roundsComplete,
   onTogglePause,
   onAdvance,
 }) => {
   const t = useT();
+  const advanceDisabled = paused || graceRunning || roundsComplete;
 
   return (
     <div style={consoleCard}>
@@ -69,13 +72,14 @@ export const RoundControlCard: React.FC<Props> = ({
 
       <components.Button
         label={t('host.game.advance')}
-        onClick={onAdvance}
+        onClick={advanceDisabled ? undefined : onAdvance}
+        disabled={advanceDisabled}
         colorScheme='secondary'
         containerStyle={{marginTop: 16}}
         style={{textTransform: 'none', height: 46}}
       />
 
-      {graceRunning && (
+      {graceRunning ? (
         <p
           className='t14'
           role='status'
@@ -83,7 +87,11 @@ export const RoundControlCard: React.FC<Props> = ({
         >
           {t('host.game.grace')}
         </p>
-      )}
+      ) : roundsComplete ? (
+        <p className='t14' role='status' style={{marginTop: 12}}>
+          {t('host.game.roundsComplete')}
+        </p>
+      ) : null}
     </div>
   );
 };
