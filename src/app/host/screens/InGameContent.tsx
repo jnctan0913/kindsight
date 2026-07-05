@@ -13,7 +13,8 @@ import {RoundControlCard} from '../components/RoundControlCard';
 import {RoundProgressList} from '../components/RoundProgressList';
 import {CoverageBar} from '../components/CoverageBar';
 import {ModerationFeed} from '../components/ModerationFeed';
-import {consoleCard, cardHeading, consoleGrid, span} from '../components/hostStyles';
+import {consoleCard, cardHeading} from '../components/hostStyles';
+import styles from './InGameContent.module.scss';
 
 type Props = {
   mode: WritingMode;
@@ -22,7 +23,7 @@ type Props = {
   timer: string;
   paused: boolean;
   graceRunning: boolean;
-  stillWriting: number;
+  roundsComplete: boolean;
   coverage: CoverageEntry[];
   roundProgress: RoundProgressEntry[];
   notes: HostNote[];
@@ -38,7 +39,7 @@ export const InGameContent: React.FC<Props> = ({
   timer,
   paused,
   graceRunning,
-  stillWriting,
+  roundsComplete,
   coverage,
   roundProgress,
   notes,
@@ -52,66 +53,74 @@ export const InGameContent: React.FC<Props> = ({
   const sortedCoverage = [...coverage].sort((a, b) => a.noteCount - b.noteCount);
 
   return (
-    <div style={{...consoleGrid, alignItems: 'start'}}>
-      {isModeA && (
-        <div style={span(6)}>
+    <div className={styles.board}>
+      {/* Left column: round control on top, the progress/coverage list fills the
+          rest of the height and scrolls on its own. */}
+      <div className={styles.leftCol}>
+        {isModeA && (
           <RoundControlCard
             round={round}
             totalRounds={totalRounds}
             timer={timer}
             paused={paused}
             graceRunning={graceRunning}
+            roundsComplete={roundsComplete}
             onTogglePause={onTogglePause}
             onAdvance={onAdvance}
           />
-        </div>
-      )}
+        )}
 
-      <div style={span(isModeA ? 6 : 7)}>
-        {isModeA ? (
-          <RoundProgressList entries={roundProgress} />
-        ) : (
-          <div style={consoleCard}>
+        <div className={styles.progressSlot}>
+          {isModeA ? (
+            <RoundProgressList entries={roundProgress} fill />
+          ) : (
             <div
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <span style={cardHeading}>{t('host.game.coverage.title')}</span>
-              <span className='t12'>{t('host.game.coverage.floor')}</span>
-            </div>
-            <div
-              style={{
-                marginTop: 14,
+                ...consoleCard,
+                height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 14,
+                minHeight: 0,
               }}
             >
-              {sortedCoverage.map((c) => (
-                <CoverageBar
-                  key={c.name}
-                  name={c.name}
-                  noteCount={c.noteCount}
-                  maxCount={maxCount}
-                />
-              ))}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <span style={cardHeading}>{t('host.game.coverage.title')}</span>
+                <span className='t12'>{t('host.game.coverage.floor')}</span>
+              </div>
+              <div
+                style={{
+                  marginTop: 14,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 14,
+                  flex: '1 1 auto',
+                  minHeight: 0,
+                  overflowY: 'auto',
+                }}
+              >
+                {sortedCoverage.map((c) => (
+                  <CoverageBar
+                    key={c.name}
+                    name={c.name}
+                    noteCount={c.noteCount}
+                    maxCount={maxCount}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
-      <div style={{...consoleCard, ...span(isModeA ? 12 : 5)}}>
-        <span style={cardHeading}>{t('phase.writing')}</span>
-        <p className='t16' style={{marginTop: 10}}>
-          {t('host.game.activity', {count: stillWriting})}
-        </p>
-      </div>
-
-      <div style={span(12)}>
-        <ModerationFeed notes={notes} onRemove={onRemoveNote} />
+      {/* Middle column: moderation feed fills the height and scrolls. */}
+      <div className={styles.fillSlot}>
+        <ModerationFeed notes={notes} onRemove={onRemoveNote} fill />
       </div>
     </div>
   );

@@ -43,9 +43,6 @@ export const MusicControls: React.FC<Props> = ({music, musicOn, revealing}) => {
     };
   }, []);
 
-  // Nothing during reveal (audio + controls both removed until the highlight wall).
-  if (revealing) return null;
-
   // Music off / no track / muted: a quiet corner indicator, no controls.
   if (!music.showControls) {
     if (!musicOn || music.muted || !music.hasTrack) {
@@ -58,8 +55,11 @@ export const MusicControls: React.FC<Props> = ({music, musicOn, revealing}) => {
     return null;
   }
 
-  // Autoplay gate: arm on the host's first click anywhere.
+  // Autoplay gate: arm on the host's first click anywhere. During reveal /
+  // wrap-up the full-screen prompt would cover the interstitial, so it is
+  // suppressed there; music still resumes once armed from an earlier phase.
   if (!music.armed) {
+    if (revealing) return null;
     return (
       <div
         onClick={music.arm}

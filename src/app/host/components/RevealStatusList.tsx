@@ -9,28 +9,45 @@ import {consoleCard, cardHeading, dosisFont} from './hostStyles';
 
 type Props = {
   statuses: {name: string; status: RevealStatus}[];
+  // Fill the parent's height and scroll the list internally (wrap-up board).
+  fill?: boolean;
+  // Render just the list (no card wrapper, no heading) so it can nest inside
+  // another card, e.g. under the reveal-progress meter.
+  bare?: boolean;
 };
 
 const statusKey: Record<RevealStatus, StringKey> = {
+  locked: 'host.wrap.status.locked',
   holding: 'host.wrap.status.holding',
   reading: 'host.wrap.status.reading',
-  finished: 'host.wrap.status.finished',
+  done: 'host.wrap.status.finished',
 };
 
 const statusColor: Record<RevealStatus, string> = {
+  locked: 'var(--text-color)',
   holding: 'var(--text-color)',
   reading: 'var(--main-color)',
-  finished: 'var(--accent-deep)',
+  done: 'var(--accent-deep)',
 };
 
-export const RevealStatusList: React.FC<Props> = ({statuses}) => {
+export const RevealStatusList: React.FC<Props> = ({
+  statuses,
+  fill = false,
+  bare = false,
+}) => {
   const t = useT();
 
-  return (
-    <div style={consoleCard}>
-      <span style={cardHeading}>{t('host.wrap.status.title')}</span>
-      <ul style={{marginTop: 14, display: 'flex', flexDirection: 'column', gap: 10}}>
-        {statuses.map((s) => (
+  const list = (
+    <ul
+      style={{
+        marginTop: bare ? 0 : 14,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 10,
+        ...(fill ? {flex: '1 1 auto', minHeight: 0, overflowY: 'auto'} : null),
+      }}
+    >
+      {statuses.map((s) => (
           <li
             key={s.name}
             style={{
@@ -62,6 +79,20 @@ export const RevealStatusList: React.FC<Props> = ({statuses}) => {
           </li>
         ))}
       </ul>
+  );
+
+  if (bare) return list;
+
+  return (
+    <div
+      style={
+        fill
+          ? {...consoleCard, height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0}
+          : consoleCard
+      }
+    >
+      <span style={cardHeading}>{t('host.wrap.status.title')}</span>
+      {list}
     </div>
   );
 };

@@ -42,7 +42,8 @@ function persistMuted(m: boolean) {
 }
 
 // Phase -> which folder plays and at what duck multiplier. Briefing ducks the
-// lobby bed to 20% so the host can talk over it; reveal is silence.
+// lobby bed to 20% so the host can talk over it. Reveal and wrap-up both play
+// the calm wrap-up bed so the room keeps a warm score through the ending.
 function phaseFolder(phase: ScreenPhase): {folder: MusicPhase | null; duck: number} {
   switch (phase) {
     case 'lobby':
@@ -51,6 +52,8 @@ function phaseFolder(phase: ScreenPhase): {folder: MusicPhase | null; duck: numb
       return {folder: 'lobby', duck: 0.2};
     case 'writing':
       return {folder: 'writing', duck: 1};
+    case 'reveal':
+      return {folder: 'wrapup', duck: 1};
     case 'wrapup':
       return {folder: 'wrapup', duck: 1};
     default:
@@ -77,7 +80,6 @@ export type RoomMusic = {
 // remote-commands it over the music channel. Volume + mute are device-local.
 export function useRoomMusic(state: ScreenRoomState | null, preview = false): RoomMusic {
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const fadeRef = useRef<number | null>(null);
   const [armed, setArmed] = useState(false);
   const [muted, setMuted] = useState(false);
   const [volume, setVol] = useState(60);
@@ -92,12 +94,11 @@ export function useRoomMusic(state: ScreenRoomState | null, preview = false): Ro
   // A folder is a playlist: every track plays in order, then loops to the first.
   const playlist = folder ? MUSIC_TRACKS[folder] : [];
   const track = playlist.length ? playlist[trackIndex % playlist.length] : null;
-  const inReveal = phase === 'reveal' || Boolean(state?.revealTriggered);
   const hasTrack = Boolean(track);
   // Preview iframe mirrors the screen but is never a speaker: no controls, no
   // playback, no remote channel.
-  const showControls = musicOn && !inReveal && hasTrack && !preview;
-  const active = armed && musicOn && !inReveal && hasTrack && !pausedByUser && !preview;
+  const showControls = musicOn && hasTrack && !preview;
+  const active = armed && musicOn && hasTrack && !pausedByUser && !preview;
 
   useEffect(() => {
     const a = new Audio();
@@ -142,7 +143,7 @@ export function useRoomMusic(state: ScreenRoomState | null, preview = false): Ro
 
   useEffect(() => {
     const a = audioRef.current;
-    if (!a || inReveal) return;
+    if (!a) return;
     a.volume = active && !muted ? Math.max(0, Math.min(1, (volume / 100) * duck)) : 0;
     if (active && a.paused) {
       void a.play().then(() => setPlaying(true)).catch(() => {});
@@ -150,31 +151,7 @@ export function useRoomMusic(state: ScreenRoomState | null, preview = false): Ro
       a.pause();
       setPlaying(false);
     }
-  }, [active, muted, volume, duck, inReveal, track]);
-
-  // Reveal: fade to silence over 2s, then hard stop (M6 exit criterion).
-  useEffect(() => {
-    const a = audioRef.current;
-    if (!a || !inReveal) return;
-    const start = a.volume;
-    const t0 = performance.now();
-    const tick = () => {
-      if (!audioRef.current) return;
-      const p = (performance.now() - t0) / 2000;
-      if (p >= 1) {
-        a.volume = 0;
-        a.pause();
-        setPlaying(false);
-        return;
-      }
-      a.volume = start * (1 - p);
-      fadeRef.current = requestAnimationFrame(tick);
-    };
-    fadeRef.current = requestAnimationFrame(tick);
-    return () => {
-      if (fadeRef.current) cancelAnimationFrame(fadeRef.current);
-    };
-  }, [inReveal]);
+  }, [active, muted, volume, duck, track]);
 
   const arm = useCallback(() => {
     setArmed(true);

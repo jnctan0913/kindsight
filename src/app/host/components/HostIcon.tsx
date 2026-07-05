@@ -14,7 +14,10 @@ export type IconName =
   | 'skip'
   | 'music'
   | 'volume'
-  | 'mute';
+  | 'mute'
+  | 'guide'
+  | 'settings'
+  | 'help';
 
 // Line icons. `color` sets the stroke explicitly (default currentColor). Pass an
 // explicit color for icons on dark backgrounds: the svg does not reliably inherit
@@ -145,6 +148,28 @@ export const HostIcon: React.FC<{name: IconName; size?: number; color?: string}>
           <path d='M4 9h4l5-4v14l-5-4H4z' />
           <path d='M16 9l6 6' />
           <path d='M22 9l-6 6' />
+        </svg>
+      );
+    case 'guide':
+      return (
+        <svg {...common}>
+          <path d='M4 5a2 2 0 012-2h5v16H6a2 2 0 00-2 2V5z' />
+          <path d='M20 5a2 2 0 00-2-2h-5v16h5a2 2 0 012 2V5z' />
+        </svg>
+      );
+    case 'settings':
+      return (
+        <svg {...common}>
+          <circle cx='12' cy='12' r='3' />
+          <path d='M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1.08-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09a1.65 1.65 0 001.51-1.08 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z' />
+        </svg>
+      );
+    case 'help':
+      return (
+        <svg {...common}>
+          <circle cx='12' cy='12' r='9' />
+          <path d='M9.5 9a2.5 2.5 0 013.9-2.1c1.2.8 1.2 2.4 0 3.2-.8.5-1.4 1-1.4 1.9' />
+          <path d='M12 17h.01' />
         </svg>
       );
   }

@@ -5,6 +5,7 @@ export type RoomMode = 'round_robin' | 'free_select';
 export type RoomPhase = 'lobby' | 'briefing' | 'writing' | 'reveal' | 'wrapup';
 export type NoteFrame = 'moment' | 'strength' | 'wish';
 export type RevealState = 'locked' | 'holding' | 'reading' | 'done';
+export type HighlightMode = 'all' | 'grid' | 'person';
 
 // list_host_rooms: room-level metadata for the caller's own live rooms (no notes).
 export type HostRoomEntry = {
@@ -28,8 +29,11 @@ export type RoomPublic = {
   timer_paused_at: string | null;
   grace_until: string | null;
   highlight_enabled: boolean;
+  highlight_mode: HighlightMode;
+  highlight_target: string | null;
   briefing_index: number;
   active_prompt: string | null;
+  closing: boolean;
   music_mood: string | null;
   music_on: boolean;
   seq: number;
@@ -126,6 +130,7 @@ export type ModerationNote = {
   frame: NoteFrame;
   content: string;
   is_bonus: boolean;
+  shared_to_wall: boolean;
   killed: boolean;
   created_at: string;
 };

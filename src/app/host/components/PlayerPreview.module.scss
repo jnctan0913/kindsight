@@ -42,9 +42,21 @@
   transform: translateZ(0);
 }
 
-/* The rendered player screen (#screen) fills the device exactly. */
-.frame > div {
+/* The rendered player screen fills the device and scrolls inside it. On /r the
+   screen is the viewport (body scrolls); here the frame is overflow:hidden, so
+   without this a tall wall (many notes) would be clipped with no way to reach
+   the notes below the fold. */
+.screenScroll {
   height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Player screens size to 100dvh (the viewport on /r). Cap them to the frame
+   inside the mock so short screens don't scroll a dead 48px and the wall scrolls
+   its own content instead. */
+.screenScroll > * {
+  min-height: 100% !important;
 }
 
 .panel {

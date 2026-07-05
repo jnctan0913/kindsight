@@ -15,11 +15,94 @@
   padding: 4vh 4vw;
   box-sizing: border-box;
   overflow: hidden;
+  position: relative;
 }
 
-.revealShell {
-  background: var(--main-color);
-  color: var(--neon-white);
+/* Review-phase screens (reveal, prompt, closing, room-ended) use the same light
+   .shell background as every other big-screen page for a consistent look.
+   .revealMoment stays as a hook for the reveal's breathing halo, the one extra
+   flourish; there is no dark background anymore. */
+
+.breathHalo {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 5vh;
+}
+
+.breathHalo::before {
+  content: '';
+  position: absolute;
+  width: clamp(300px, 36vw, 560px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(0, 199, 159, 0.3) 0%,
+    rgba(0, 199, 159, 0) 68%
+  );
+  animation: breatheHalo 7s ease-in-out infinite;
+}
+
+.revealMoment .mascot {
+  position: relative;
+  animation: breatheMascot 7s ease-in-out infinite;
+}
+
+/* Teal-on-light eyebrow, same palette as the briefing eyebrow, sized up a touch
+   for the reveal moment. */
+.revealEyebrow {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-pill);
+  background: rgba(0, 199, 159, 0.15);
+  color: var(--accent-deep);
+  padding: 8px 22px;
+  margin-bottom: 3vh;
+  font-family: var(--font-dosis), var(--font-noto-sc), sans-serif;
+  font-size: clamp(16px, 1.4vw, 24px);
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+.revealBreathe {
+  font-family: var(--font-dosis), var(--font-noto-sc), sans-serif;
+  font-size: clamp(22px, 2.2vw, 38px);
+  text-align: center;
+  margin-top: 2.4vh;
+  color: var(--accent-deep);
+  letter-spacing: 0.02em;
+}
+
+@keyframes breatheHalo {
+  0%,
+  100% {
+    transform: scale(0.8);
+    opacity: 0.35;
+  }
+  50% {
+    transform: scale(1.14);
+    opacity: 0.7;
+  }
+}
+
+@keyframes breatheMascot {
+  0%,
+  100% {
+    transform: scale(0.97);
+  }
+  50% {
+    transform: scale(1.03);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .breathHalo::before,
+  .revealMoment .mascot {
+    animation: none;
+  }
 }
 
 .logo {
@@ -286,6 +369,98 @@
   color: var(--main-color);
 }
 
+/* Discussion-prompt screen: same two-column treatment as the briefing, mirrored
+   so the copy sits left and the "let's talk" mascot sits right. */
+.promptShell {
+  display: grid;
+  height: 100dvh;
+  min-height: 100dvh;
+  max-height: 100dvh;
+  /* Content-sized columns so the text + mascot pack together and the whole
+     group is centred on the stage, rather than each pinned to an edge. */
+  grid-template-columns: minmax(0, max-content) minmax(0, max-content);
+  align-items: center;
+  justify-content: center;
+  column-gap: clamp(8px, 1.4vw, 24px);
+  padding: clamp(24px, 3.6vh, 52px) clamp(32px, 4.8vw, 84px);
+}
+
+.promptCopy {
+  grid-column: 1;
+  align-self: center;
+  /* Hug the column's inner edge so the copy sits next to the mascot instead of
+     being pushed to the far left of the stage. */
+  justify-self: end;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: clamp(14px, 2.6vh, 34px);
+  max-width: 900px;
+}
+
+.promptCopy .headline {
+  text-align: left;
+  max-width: 100%;
+}
+
+.promptVisual {
+  grid-column: 2;
+  width: min(28vw, 360px);
+  max-width: 100%;
+  /* Hug the column's inner edge too, so text and mascot meet near the centre. */
+  justify-self: start;
+  align-self: center;
+}
+
+.promptVisual img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 74vh;
+  object-fit: contain;
+}
+
+.previewShell.promptShell {
+  min-height: 0;
+  height: 100%;
+  grid-template-columns: minmax(0, 1fr) minmax(92px, 0.7fr);
+  column-gap: clamp(10px, 1.8vw, 24px);
+  padding: clamp(10px, 1.7vw, 20px);
+}
+
+.previewShell .promptVisual {
+  width: min(18vw, 128px);
+}
+
+.previewShell .promptVisual img {
+  max-height: 88%;
+}
+
+@media (max-width: 900px) {
+  .promptShell {
+    grid-template-columns: 1fr;
+    grid-auto-rows: auto;
+    gap: 22px;
+    padding: 28px 22px;
+  }
+
+  .promptCopy {
+    grid-column: 1;
+    align-items: center;
+    justify-self: center;
+  }
+
+  .promptCopy .headline {
+    text-align: center;
+  }
+
+  .promptVisual {
+    grid-column: 1;
+    width: min(52vw, 260px);
+    justify-self: center;
+  }
+}
+
 .highlightCard {
   background: rgba(255, 255, 255, 0.95);
   border-radius: var(--radius-card);
@@ -304,7 +479,7 @@
   font-size: clamp(18px, 1.8vw, 28px);
   font-weight: 600;
   font-family: var(--font-dosis), var(--font-noto-sc), sans-serif;
-  color: var(--accent-deep);
+  color: var(--main-color);
 }
 
 .highlightText {
@@ -315,9 +490,249 @@
   color: var(--main-color);
 }
 
+.highlightRecipient {
+  display: block;
+  margin-top: 2.4vh;
+  font-size: clamp(16px, 1.5vw, 24px);
+  font-weight: 600;
+  font-family: var(--font-dosis), var(--font-noto-sc), sans-serif;
+  color: var(--main-color);
+}
+
+/* Wall screen: logo pinned top-left, title above, notes fill the rest. */
+.wallShell.shell {
+  justify-content: flex-start;
+  padding-top: clamp(24px, 3.5vh, 48px);
+}
+
+.wallHeader {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(12px, 1.4vw, 24px);
+  width: 100%;
+  margin-bottom: clamp(10px, 2vh, 24px);
+}
+
+/* Legend pinned to the header's top-right (same row as the title) naming the
+   recipient whose cards are ringed in 'person' focus mode. */
+.wallLegend {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(8px, 0.8vw, 14px);
+  padding: clamp(6px, 0.7vw, 12px) clamp(14px, 1.2vw, 22px);
+  border-radius: var(--radius-pill);
+  background: var(--main-color);
+  color: var(--white-color);
+  box-shadow: var(--shadow-soft);
+  font-family: var(--font-dosis), var(--font-noto-sc), sans-serif;
+  font-size: clamp(15px, 1.35vw, 24px);
+  font-weight: 700;
+}
+
+.wallLegendDot {
+  width: clamp(12px, 1vw, 18px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--white-color);
+  box-shadow: 0 0 0 clamp(3px, 0.3vw, 6px) rgba(255, 255, 255, 0.25);
+}
+
+/* Logo pinned to the header's left (same row/section as the title) so the title
+   stays centred on the stage while the mark sits in the corner. */
+.wallLogo {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: clamp(52px, 4.4vw, 92px);
+  height: auto;
+  flex: 0 0 auto;
+}
+
+.wallTitle {
+  font-family: var(--font-dosis), var(--font-noto-sc), sans-serif;
+  font-size: clamp(26px, 2.8vw, 50px);
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.1;
+  margin-bottom: 0;
+}
+
+/* Arranged wall: every opted-in note fits one non-scrolling frame. The grid
+   stretches to fill the available height with equal cells; --wall-scale shrinks
+   the type as density grows and cards clip rather than push the page taller. */
+.highlightWall {
+  display: grid;
+  grid-template-columns: repeat(var(--wall-cols, 3), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--wall-rows, 1), minmax(0, 1fr));
+  grid-auto-flow: row dense;
+  gap: clamp(12px, 1.3vw, 24px);
+  width: 100%;
+  margin: 0 auto;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.highlightWall .highlightCard {
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  max-width: none;
+  text-align: left;
+  margin: 0;
+  padding: clamp(14px, 1.5vw, 26px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.highlightWall .highlightHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.highlightWall .highlightFrame {
+  font-size: calc(clamp(14px, 1.2vw, 20px) * var(--wall-scale, 1));
+  padding: 5px 14px;
+}
+
+.highlightWall .highlightText {
+  font-size: calc(clamp(19px, 1.9vw, 32px) * var(--wall-scale, 1));
+  line-height: 1.28;
+  margin-top: 1.2vh;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.highlightWall .highlightRecipient {
+  margin: 0;
+  flex: 0 0 auto;
+  font-size: calc(clamp(14px, 1.2vw, 20px) * var(--wall-scale, 1));
+}
+
+/* Frame tints give the wall a word-cloud variety without extra chrome. */
+.frameMoment {
+  background: rgba(255, 199, 130, 0.32);
+}
+
+.frameStrength {
+  background: rgba(0, 199, 159, 0.16);
+}
+
+.frameWish {
+  background: rgba(126, 150, 255, 0.18);
+}
+
+/* Floating prompt modal over the wall: a compact "let's talk" (text + mascot)
+   that anchors to a corner clear of the focused cards. No full backdrop so the
+   wall stays visible. */
+.promptModal {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: clamp(10px, 1.2vw, 20px);
+  width: clamp(320px, 33vw, 540px);
+  max-width: 44vw;
+  padding: clamp(16px, 1.7vw, 28px);
+  border-radius: var(--radius-card);
+  background: var(--white-color);
+  box-shadow: 0 24px 64px rgba(30, 37, 56, 0.28);
+  animation: promptModalIn 260ms ease;
+}
+
+/* Arrange-all: the modal becomes a grid tile filling its reserved block, so the
+   cards reflow around it instead of being covered. */
+.promptModalTile {
+  position: static;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+}
+
+.promptModalCopy {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.promptModalEyebrow {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-pill);
+  background: rgba(0, 199, 159, 0.15);
+  color: var(--accent-deep);
+  padding: 5px 14px;
+  margin-bottom: clamp(6px, 1vh, 12px);
+  font-family: var(--font-dosis), var(--font-noto-sc), sans-serif;
+  font-size: clamp(12px, 1vw, 18px);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.promptModalText {
+  font-family: var(--font-dosis), var(--font-noto-sc), sans-serif;
+  font-size: clamp(19px, 1.8vw, 32px);
+  line-height: 1.25;
+  color: var(--main-color);
+}
+
+.promptModalMascot {
+  flex: 0 0 auto;
+  width: clamp(86px, 8.5vw, 148px);
+  height: auto;
+}
+
+@keyframes promptModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .promptModal {
+    animation: none;
+  }
+}
+
+/* 'Person' focus: ring the selected recipient's cards, fade the rest. */
+.highlightCardFocus {
+  box-shadow:
+    0 0 clamp(14px, 1.5vw, 30px) clamp(1px, 0.2vw, 4px) rgba(255, 255, 255, 0.95),
+    0 0 clamp(6px, 0.7vw, 14px) rgba(255, 255, 255, 0.8);
+  transform: scale(1.03);
+  transition: box-shadow 220ms ease, transform 220ms ease, opacity 220ms ease;
+}
+
+.highlightCardDim {
+  opacity: 0.38;
+  transition: opacity 200ms ease;
+}
+
 .mascot {
   width: clamp(140px, 16vw, 240px);
   height: auto;
+  margin-bottom: 4vh;
+}
+
+/* The breathing halo already spaces the reveal mascot; avoid doubling it. */
+.breathHalo .mascot {
+  margin-bottom: 0;
 }
 
 .ticker {
@@ -486,6 +901,27 @@
 
 .previewShell .mascot {
   width: clamp(70px, 12vw, 120px);
+  margin-bottom: 2vh;
+}
+
+.previewShell .breathHalo {
+  margin-bottom: 2vh;
+}
+
+.previewShell .breathHalo::before {
+  width: clamp(120px, 28vw, 220px);
+}
+
+.previewShell .revealEyebrow {
+  padding: 4px 12px;
+  margin-bottom: 1.4vh;
+  font-size: clamp(9px, 1vw, 13px);
+  letter-spacing: 0.2em;
+}
+
+.previewShell .revealBreathe {
+  font-size: clamp(12px, 1.3vw, 18px);
+  margin-top: 1.2vh;
 }
 
 @media (max-width: 900px) {

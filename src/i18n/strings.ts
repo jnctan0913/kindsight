@@ -107,12 +107,30 @@ const en = {
   'player.wall.share.hint':
     'Tap the screen icon on a note to show it on the big screen. You can change this until the room ends.',
   'player.wall.share.aria': 'Show this note on the big screen wall',
-  'player.wall.export.cta': 'Save my wall as an image',
+  'player.wall.export.cta': 'Create a shareable image',
   'player.wall.export.rendering': 'Making your image...',
   'player.wall.export.success': 'Saved. This image is your keepsake.',
   'player.wall.export.fallback': 'Press and hold the image to save it',
   'player.wall.export.close': 'Close',
-  'player.wall.export.aria': 'Your Kindsight wall, ready to save',
+  'player.wall.export.aria': 'Your Kindsight note, ready to save',
+  'player.share.title': 'Create a shareable image',
+  'player.share.subtitle':
+    'Pick a note and a background. Save it, share it, or set it as your wallpaper.',
+  'player.share.format.wallpaper': 'Wallpaper',
+  'player.share.format.square': 'Square',
+  'player.share.bg.aurora-night': 'Aurora night',
+  'player.share.bg.warm-dawn': 'Warm dawn',
+  'player.share.bg.inner-light': 'Inner light',
+  'player.share.background.aria': 'Choose a background',
+  'player.share.note.label': 'Choose a note',
+  'player.share.save': 'Save this image',
+  'player.share.saveAll': 'Save all notes',
+  'player.share.rendering': 'Making your image...',
+  'player.share.batch': 'Making your images...',
+  'player.share.attribution': 'Written anonymously by your room.',
+  'player.share.success': 'Saved. This image is your keepsake.',
+  'player.wall.done.cta': "I'm done reading",
+  'player.wall.done.confirm': "You're all set. Your wall stays here until the room ends.",
   'player.wall.empty': 'No notes on your wall yet.',
 
   'player.ended.title': 'This room has closed.',
@@ -172,6 +190,65 @@ const en = {
   'host.hub.sidebar': 'Console',
   'host.hub.sidebarHint': 'Pick an action',
   'host.hub.home': 'Back to home',
+
+  'host.guide.cta': 'Facilitator guide',
+  'host.guide.title': 'Facilitator guide',
+  'host.guide.subtitle': 'How to hold the room, beat by beat.',
+  'host.guide.tab.prep': 'Prepare',
+  'host.guide.tab.run': 'Run sheet',
+  'host.guide.tab.room': 'Hold the room',
+  'host.guide.tab.close': 'Close it well',
+  'host.guide.prep.body':
+    'Round-robin for 6 or more people; free select only for small, high-trust groups.\n' +
+    '3 minutes per round suits most groups. Accept the suggested round count.\n' +
+    'Rehearse the reveal once with the Preview demo. You cannot pace a moment you have never felt.\n' +
+    'Line up soft instrumental music, no lyrics, for the writing round only.',
+  'host.guide.run.body':
+    'Lobby: "Scan, find your name, claim it." Wait for everyone before you start.\n' +
+    'Briefing: perform the two bad-note examples yourself. Specific beats nice.\n' +
+    'Writing: music on. Nudge the room, never the person. Call the last round firmly.\n' +
+    'Settle: music off. Three breaths. Protect the silence with your whole body.\n' +
+    'Reveal: never rush someone mid-wall. Give slow readers another 30 seconds.\n' +
+    'Sharing: three questions, hands only, never cold-call. No hands is a valid outcome.',
+  'host.guide.room.body':
+    'Keep the reveal silent. One raised hand, no words, if someone whispers.\n' +
+    'Nudge collectively. Never name who is short on notes or slow to finish.\n' +
+    'Someone will not join: make them a reader. Never force vulnerability.\n' +
+    'Someone cries: give space, do not spotlight them, check in quietly afterward.\n' +
+    'A hurtful note slipped through: handle the person privately, never the room.',
+  'host.guide.close.body':
+    'Do not close with "great job." Close with the meaning line, then a lighter beat.\n' +
+    'Remind twice to save walls as images. When the room closes, the notes are gone.\n' +
+    'Optional team photo in front of the highlight wall of opted-in notes.',
+
+  'host.help.cta': 'Help',
+  'host.help.title': 'Help',
+  'host.help.subtitle': 'How the app works and how to fix hiccups.',
+  'host.help.tab.screens': 'Screens',
+  'host.help.tab.controls': 'Console',
+  'host.help.tab.fixes': 'Fixes',
+  'host.help.tab.privacy': 'Privacy & data',
+  'host.help.screens.body':
+    'Big screen: open the projector view on the room screen link. It never shows note content, so it is safe to display all session.\n' +
+    'Players join from their phones with the QR code or the room code.\n' +
+    'Round-robin: the app assigns who each person writes to, keeping every wall even.\n' +
+    'Free select: players choose anyone on the roster; names they have written to get a check.',
+  'host.help.controls.body':
+    'Phase stepper moves the room forward. Rewind steps one phase back if you advanced too early.\n' +
+    'Preview opens the player flow with fake notes, safe to explore anytime.\n' +
+    'Moderation feed shows note content and target, never authors. Kill removes a note in any phase, with no trace to the recipient.\n' +
+    'Highlight wall rotates opted-in notes on the big screen. Prompt deck pushes a discussion question.\n' +
+    'Music remote toggles the big screen audio; the big screen is the speaker.',
+  'host.help.fixes.body':
+    'Your laptop dies: reopen the host URL on any device. The room lives on the server, so players notice nothing.\n' +
+    'A phone dies or will not connect: pair that player with a neighbor to write and read together.\n' +
+    '"Reconnecting" showing: the app retries automatically and sends queued actions once it is back.\n' +
+    'Cannot open the walls: in free select every wall needs at least 3 notes first, and the console names who is short.',
+  'host.help.privacy.body':
+    'Notes are anonymous to everyone, including you. Authors are never shown.\n' +
+    'Saving: players save their wall as an image. That image is the only lasting copy.\n' +
+    'The room self-deletes 24 hours after it ends.\n' +
+    'End and delete removes all notes and the roster immediately. Type the room code to confirm.',
   'host.hub.start.title': 'Start a new game',
   'host.hub.start.body':
     'Create a room, paste the roster, and open the lobby when players arrive.',
@@ -241,8 +318,17 @@ const en = {
     'Three frames only. Anonymous forever. Specific beats nice every time.',
   'screen.writing.title': 'Writing round {n} of {total}',
   'screen.writing.notes': '{count} notes written',
-  'screen.reveal.interstitial': 'Look at your phone. Take three breaths.',
+  'screen.reveal.eyebrow': 'The reveal',
+  'screen.reveal.title': 'Look at your phone.',
+  'screen.reveal.breathe': 'Take three breaths.',
   'screen.highlight.title': 'Shared from the room',
+  'screen.highlight.personTitle': "{name}'s wall",
+  'screen.highlight.focusLegend': 'In focus: {name}',
+  'screen.prompt.eyebrow': 'Discuss together',
+  'screen.closing.title': 'Thank you for the light you gave each other.',
+  'screen.closing.subcopy': 'Kindsight',
+  'screen.ended.title': 'This room has ended.',
+  'screen.ended.subcopy': 'Thanks for the light you shared.',
 
   'host.create.title': 'Create a room',
   'host.create.mode.label': 'Writing mode',
@@ -297,6 +383,17 @@ const en = {
   'host.game.resume': 'Resume',
   'host.game.advance': 'Advance round now',
   'host.game.grace': 'Grace period running (10s)',
+  'host.game.roundsComplete': 'All rounds complete. Advance to reveal.',
+
+  'host.settings.nav': 'Settings',
+  'host.settings.title': 'Session settings',
+  'host.settings.subtitle': 'Adjust rounds and round length for this session.',
+  'host.settings.rounds.current': '{n} rounds',
+  'host.settings.roundsLocked':
+    'Round count locks once writing starts. Add a round to give everyone another turn.',
+  'host.settings.addRound': 'Add a round',
+  'host.settings.mode.roundRobin': 'Round-robin (Mode A)',
+  'host.settings.mode.freeSelect': 'Free-select (Mode B)',
   'host.game.activity': '{count} players still writing this round',
   'host.game.coverage.title': 'Coverage',
   'host.game.coverage.floor': '3-note floor',
@@ -335,14 +432,41 @@ const en = {
   'host.wrap.reveal.blockedNames': 'Waiting on {names}',
   'host.wrap.reveal.triggered': 'The walls are open.',
   'host.wrap.status.title': 'Reveal status',
+  'host.wrap.status.locked': 'Not started',
   'host.wrap.status.holding': 'Holding',
   'host.wrap.status.reading': 'Reading',
   'host.wrap.status.finished': 'Finished',
+  'host.wrap.progress.title': 'Reveal progress',
+  'host.wrap.progress.meter': '{done} of {total} finished reading',
+  'host.wrap.progress.opened': '{opened} have opened their wall',
+  'host.wrap.progress.none': 'No one has opened a wall yet',
   'host.wrap.highlight.label': 'Show opted-in notes on the big screen',
   'host.wrap.highlight.count': '{count} notes opted in',
   'host.wrap.highlight.disabled': 'No notes opted in yet',
+  'host.wrap.highlight.mode.all': 'Rotate all',
+  'host.wrap.highlight.mode.grid': 'Arrange all',
+  'host.wrap.highlight.mode.person': 'Highlight',
+  'host.wrap.highlight.person.hint': 'Choose whose notes to highlight',
+  'host.wrap.highlight.person.empty': 'No one has shared a note yet',
+  'host.wrap.highlight.person.clear': 'Clear',
   'host.wrap.prompts.title': 'Sharing prompts',
   'host.wrap.prompts.push': 'Show on big screen',
+  'host.wrap.prompts.stop': 'Stop showing',
+  'host.wrap.prompts.live': 'Showing now',
+  'host.wrap.prompts.add': 'Add prompt',
+  'host.wrap.prompts.placeholder': 'Write a discussion prompt',
+  'host.wrap.prompts.remove': 'Remove prompt',
+  'host.wrap.closing.title': 'Closing screen',
+  'host.wrap.closing.sub':
+    'Show a quiet thank-you on the big screen to close the room.',
+  'host.wrap.closing.cta': 'Show closing screen',
+  'host.wrap.closing.stop': 'Hide closing screen',
+  'host.wrap.closing.on': 'The closing screen is showing.',
+  'host.wrap.summary.title': 'This room',
+  'host.wrap.summary.players': 'People',
+  'host.wrap.summary.notes': 'Notes written',
+  'host.wrap.summary.shared': 'On the wall',
+  'host.wrap.summary.opened': 'Walls opened',
   'host.wrap.end.cta': 'End and delete room',
   'host.wrap.end.body':
     'This deletes all notes and the roster permanently. Exported images are unaffected. Type the room code to confirm.',
@@ -487,12 +611,29 @@ const zh: Record<StringKey, string> = {
   'player.wall.share.hint':
     '点便签上的屏幕图标，就能把它投到大屏幕。房间结束前都可以更改。',
   'player.wall.share.aria': '把这张便签投到大屏幕',
-  'player.wall.export.cta': '把我的墙存成图片',
+  'player.wall.export.cta': '生成一张可分享的图片',
   'player.wall.export.rendering': '正在生成图片……',
   'player.wall.export.success': '已保存。这张图片是你的纪念。',
   'player.wall.export.fallback': '长按图片即可保存',
   'player.wall.export.close': '关闭',
-  'player.wall.export.aria': '你的 Kindsight 墙，可以保存了',
+  'player.wall.export.aria': '你的 Kindsight 便签，可以保存了',
+  'player.share.title': '生成一张可分享的图片',
+  'player.share.subtitle': '挑一张便签和一个背景。保存、分享，或设为你的手机壁纸。',
+  'player.share.format.wallpaper': '壁纸',
+  'player.share.format.square': '方形',
+  'player.share.bg.aurora-night': '极光之夜',
+  'player.share.bg.warm-dawn': '暖阳破晓',
+  'player.share.bg.inner-light': '心中之光',
+  'player.share.background.aria': '选择背景',
+  'player.share.note.label': '选择便签',
+  'player.share.save': '保存这张图片',
+  'player.share.saveAll': '保存全部便签',
+  'player.share.rendering': '正在生成图片……',
+  'player.share.batch': '正在生成图片……',
+  'player.share.attribution': '由这间房里的人匿名写下。',
+  'player.share.success': '已保存。这张图片是你的纪念。',
+  'player.wall.done.cta': '我读完了',
+  'player.wall.done.confirm': '都好了。房间结束前，这面墙一直在这里。',
   'player.wall.empty': '你的墙上还没有便签。',
 
   'player.ended.title': '这个房间已经结束。',
@@ -548,6 +689,65 @@ const zh: Record<StringKey, string> = {
   'host.hub.sidebar': '控制台',
   'host.hub.sidebarHint': '选择操作',
   'host.hub.home': '返回首页',
+
+  'host.guide.cta': '主持人指南',
+  'host.guide.title': '主持人指南',
+  'host.guide.subtitle': '一拍一拍，教你稳稳掌控全场。',
+  'host.guide.tab.prep': '准备',
+  'host.guide.tab.run': '流程表',
+  'host.guide.tab.room': '掌控现场',
+  'host.guide.tab.close': '好好收尾',
+  'host.guide.prep.body':
+    '6 人及以上用轮流模式；自由选择模式只适合人少、彼此信任的小团队。\n' +
+    '每轮 3 分钟适合大多数团队，回合数用系统推荐值即可。\n' +
+    '用彩排演示把开墙流程亲自走一遍。没亲身感受过的时刻，你带不动。\n' +
+    '准备好轻柔的纯音乐（无人声），只在书写环节播放。',
+  'host.guide.run.body':
+    '大厅：「扫码，找到自己的名字，认领它。」等所有人就位再开始。\n' +
+    '简报：亲自演示那两条最差的便签。具体永远胜过客气。\n' +
+    '书写：开背景音乐。提醒整个房间，不要点名个人。果断宣布最后一轮。\n' +
+    '沉淀：关音乐。三次呼吸。用你的全部姿态守护这份安静。\n' +
+    '开墙：绝不催促正在读墙的人，给读得慢的人再多 30 秒。\n' +
+    '分享：三个问题，只举手，绝不点名。没人举手也是一种有效结果。',
+  'host.guide.room.body':
+    '让开墙保持安静。有人低声说话，就举一只手，不出声。\n' +
+    '要提醒就集体提醒，绝不说出谁写得少、谁读得慢。\n' +
+    '有人不愿参与：让他当读者，绝不强迫他袒露自己。\n' +
+    '有人落泪：给空间，不要聚焦他，结束后私下关心。\n' +
+    '有伤人的便签漏过去了：私下处理当事人，绝不在房间里说。',
+  'host.guide.close.body':
+    '别用「大家辛苦了」收尾。先读出那句有分量的话，再轻轻带过。\n' +
+    '提醒两次把墙保存成图片。房间一关闭，便签就没了。\n' +
+    '可选的团队合影：站在自愿公开便签的高亮墙前拍。',
+
+  'host.help.cta': '帮助',
+  'host.help.title': '帮助',
+  'host.help.subtitle': '了解应用怎么用，遇到小问题怎么修。',
+  'host.help.tab.screens': '各屏幕',
+  'host.help.tab.controls': '控制台',
+  'host.help.tab.fixes': '排障',
+  'host.help.tab.privacy': '隐私与数据',
+  'host.help.screens.body':
+    '大屏：在房间的大屏链接上打开投影视图。它永远不显示便签内容，整场展示都安全。\n' +
+    '玩家用手机扫二维码或输入房间码加入。\n' +
+    '轮流模式：应用自动分配每个人写给谁，让每面墙都均衡。\n' +
+    '自由选择：玩家从名单里任选；写过的名字会打勾。',
+  'host.help.controls.body':
+    '阶段步进器推进房间。若推进太早，用回退退回上一阶段。\n' +
+    '彩排用示例数据打开玩家流程，随时可安全查看。\n' +
+    '审核流显示便签内容和对象，从不显示作者。删除可在任意阶段移除便签，收信人不会察觉。\n' +
+    '高亮墙在大屏轮播自愿公开的便签。提示牌组推送讨论问题。\n' +
+    '音乐遥控开关大屏声音；大屏就是音箱。',
+  'host.help.fixes.body':
+    '你的电脑坏了：在任意设备重新打开主持网址。房间在服务器上，玩家毫无察觉。\n' +
+    '手机没电或连不上：让那位玩家和邻座配对，一起书写、一起读墙。\n' +
+    '显示「重新连接中」：应用会自动重试，恢复后补发排队的操作。\n' +
+    '无法开墙：自由选择模式下每面墙至少要有 3 条便签，控制台会指出谁还差。',
+  'host.help.privacy.body':
+    '便签对所有人匿名，包括你。作者永远不显示。\n' +
+    '保存：玩家把自己的墙存成图片，那张图是唯一长久的留存。\n' +
+    '房间在结束 24 小时后自动删除。\n' +
+    '结束并删除会立即移除所有便签和名单。输入房间码确认。',
   'host.hub.start.title': '开始新游戏',
   'host.hub.start.body': '创建房间、粘贴名单，玩家到场后进入大厅。',
   'host.hub.start.cta': '创建房间',
@@ -613,8 +813,17 @@ const zh: Record<StringKey, string> = {
   'screen.briefing.rules': '只有三个开头。永远匿名。具体永远胜过客气。',
   'screen.writing.title': '写作第 {n} 轮 / 共 {total} 轮',
   'screen.writing.notes': '已写 {count} 张便签',
-  'screen.reveal.interstitial': '请看手机。深呼吸三次。',
+  'screen.reveal.eyebrow': '揭晓时刻',
+  'screen.reveal.title': '请看手机。',
+  'screen.reveal.breathe': '深呼吸三次。',
   'screen.highlight.title': '来自房间的分享',
+  'screen.highlight.personTitle': '{name} 的光墙',
+  'screen.highlight.focusLegend': '聚焦：{name}',
+  'screen.prompt.eyebrow': '一起聊聊',
+  'screen.closing.title': '谢谢你们，彼此照亮。',
+  'screen.closing.subcopy': 'Kindsight',
+  'screen.ended.title': '本房间已结束。',
+  'screen.ended.subcopy': '谢谢你们分享的光。',
 
   'host.create.title': '创建房间',
   'host.create.mode.label': '写作模式',
@@ -668,6 +877,16 @@ const zh: Record<StringKey, string> = {
   'host.game.resume': '继续',
   'host.game.advance': '立即进入下一轮',
   'host.game.grace': '缓冲期进行中（10 秒）',
+  'host.game.roundsComplete': '所有轮次已完成，进入开墙。',
+
+  'host.settings.nav': '设置',
+  'host.settings.title': '会话设置',
+  'host.settings.subtitle': '调整本次会话的轮数和每轮时长。',
+  'host.settings.rounds.current': '{n} 轮',
+  'host.settings.roundsLocked': '写作开始后轮数将锁定。可添加一轮，让大家再写一次。',
+  'host.settings.addRound': '添加一轮',
+  'host.settings.mode.roundRobin': '轮流模式（模式 A）',
+  'host.settings.mode.freeSelect': '自由选择（模式 B）',
   'host.game.activity': '本轮还有 {count} 人在写',
   'host.game.coverage.title': '覆盖情况',
   'host.game.coverage.floor': '3 张下限',
@@ -704,14 +923,40 @@ const zh: Record<StringKey, string> = {
   'host.wrap.reveal.blockedNames': '还差 {names}',
   'host.wrap.reveal.triggered': '所有墙都打开了。',
   'host.wrap.status.title': '开墙状态',
+  'host.wrap.status.locked': '未开始',
   'host.wrap.status.holding': '按住中',
   'host.wrap.status.reading': '阅读中',
   'host.wrap.status.finished': '已读完',
+  'host.wrap.progress.title': '开墙进度',
+  'host.wrap.progress.meter': '{done} / {total} 人已读完',
+  'host.wrap.progress.opened': '{opened} 人已打开自己的墙',
+  'host.wrap.progress.none': '还没有人打开墙',
   'host.wrap.highlight.label': '在大屏幕上展示同意分享的便签',
   'host.wrap.highlight.count': '{count} 张便签已同意分享',
   'host.wrap.highlight.disabled': '还没有便签同意分享',
+  'host.wrap.highlight.mode.all': '轮流展示',
+  'host.wrap.highlight.mode.grid': '全部排列',
+  'host.wrap.highlight.mode.person': '高亮',
+  'host.wrap.highlight.person.hint': '选择要高亮谁的便签',
+  'host.wrap.highlight.person.empty': '还没有人分享便签',
+  'host.wrap.highlight.person.clear': '清除',
   'host.wrap.prompts.title': '分享话题',
   'host.wrap.prompts.push': '推送到大屏幕',
+  'host.wrap.prompts.stop': '停止展示',
+  'host.wrap.prompts.live': '正在展示',
+  'host.wrap.prompts.add': '添加话题',
+  'host.wrap.prompts.placeholder': '写一个讨论话题',
+  'host.wrap.prompts.remove': '删除话题',
+  'host.wrap.closing.title': '结束画面',
+  'host.wrap.closing.sub': '在大屏幕上展示一句温柔的谢幕，为房间收尾。',
+  'host.wrap.closing.cta': '展示结束画面',
+  'host.wrap.closing.stop': '隐藏结束画面',
+  'host.wrap.closing.on': '结束画面正在展示。',
+  'host.wrap.summary.title': '这个房间',
+  'host.wrap.summary.players': '人数',
+  'host.wrap.summary.notes': '写下的便签',
+  'host.wrap.summary.shared': '墙上展示',
+  'host.wrap.summary.opened': '已开墙',
   'host.wrap.end.cta': '结束并删除房间',
   'host.wrap.end.body':
     '这会永久删除所有便签和名单。已导出的图片不受影响。输入房间码以确认。',

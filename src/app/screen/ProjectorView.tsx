@@ -1,6 +1,6 @@
 'use client';
 
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import {QRCodeSVG} from 'qrcode.react';
 
 import {asset} from '../../config';
@@ -13,6 +13,7 @@ import {
   getBriefingSlide,
   normalizeBriefingIndex,
 } from '../../lib/briefingContent';
+import {parseHighlightTargets} from '../../lib/hostRoomSync';
 import type {ScreenRoomState} from '../../lib/hostRoomSync';
 import styles from './BigScreen.module.scss';
 
@@ -23,50 +24,189 @@ type Props = {
 
 export const ProjectorView: React.FC<Props> = ({state, preview = false}) => {
   const t = useT();
-  const [highlightIndex, setHighlightIndex] = useState(0);
   const shellClass = `${styles.shell} ${preview ? styles.previewShell : ''}`;
 
-  useEffect(() => {
-    if (!state.highlightEnabled || state.highlightNotes.length === 0) return;
-    const id = window.setInterval(() => {
-      setHighlightIndex((i) => (i + 1) % state.highlightNotes.length);
-    }, 8000);
-    return () => window.clearInterval(id);
-  }, [state.highlightEnabled, state.highlightNotes.length]);
+  // The wall always shows everyone's notes. 'person' (Highlight) mode does not
+  // filter; it rings the focused recipients' cards and dims the rest, with a
+  // header legend. The host may focus several people at once.
+  const focusNames = parseHighlightTargets(state.highlightTarget);
+  const focusSet = new Set(focusNames);
+  const isPerson = state.highlightMode === 'person' && focusSet.size > 0;
+  const highlightNotes = state.highlightNotes;
 
-  if (state.highlightEnabled && state.highlightNotes.length > 0) {
-    const note = state.highlightNotes[highlightIndex % state.highlightNotes.length];
-    const frameKey = `frame.${note.frame}.label` as StringKey;
+  // Closing is the final beat: a quiet thank-you that ends the room. It wins
+  // over every other state so the host can close gracefully from anywhere.
+  if (state.closing) {
     return (
       <div className={shellClass}>
         <img
-          src={asset('/assets/kindsight/kindsight-logo-transparent.png')}
-          alt='Kindsight'
-          className={styles.logo}
+          src={asset('/assets/kindsight/mascot-farewell.png')}
+          alt=''
+          className={styles.mascot}
         />
-        <p className={styles.headline}>{t('screen.highlight.title')}</p>
-        <div className={styles.highlightCard}>
-          <span className={styles.highlightFrame}>{t(frameKey)}</span>
-          <p className={styles.highlightText}>{note.content}</p>
+        <p className={styles.headline}>{t('screen.closing.title')}</p>
+        <p className={styles.subcopy} style={{marginTop: '4vh'}}>
+          {t('screen.closing.subcopy')}
+        </p>
+      </div>
+    );
+  }
+
+  if (state.highlightEnabled && highlightNotes.length > 0) {
+    const frameKeyOf = (frame: string) => `frame.${frame}.label` as StringKey;
+    const frameClass: Record<string, string> = {
+      moment: styles.frameMoment,
+      strength: styles.frameStrength,
+      wish: styles.frameWish,
+    };
+
+    // Arranged wall: every opted-in note fits one non-scrolling frame at once.
+    // Columns/rows are derived from the count (favouring a wider grid to match
+    // the 16:9 stage) and the grid stretches to fill the height; --wall-scale
+    // shrinks the type as density grows so nothing clips.
+    const count = highlightNotes.length;
+    // A live prompt always reserves a 2x2 block for the modal and lets the cards
+    // reflow into the remaining cells, so no note is hidden. In person mode the
+    // focus glow still marks the selected recipient's cards wherever they land.
+    const reserve = !!state.activePrompt;
+    let reserveCols = reserve ? 2 : 0;
+    let reserveRows = reserve ? 2 : 0;
+    const cells = count + reserveCols * reserveRows;
+    const columns = Math.min(
+      6,
+      Math.max(reserve ? 2 : 1, Math.ceil(Math.sqrt(cells * 1.6))),
+    );
+    const rows = Math.ceil(cells / columns);
+    if (reserve) {
+      reserveCols = Math.min(reserveCols, columns);
+      reserveRows = Math.min(reserveRows, rows);
+    }
+    const wallScale =
+      count <= 4
+        ? 1
+        : count <= 8
+        ? 0.9
+        : count <= 12
+        ? 0.8
+        : count <= 16
+        ? 0.72
+        : count <= 24
+        ? 0.62
+        : 0.54;
+
+    const tileStyle: React.CSSProperties | undefined = reserve
+      ? {
+          gridColumn: `${columns - reserveCols + 1} / span ${reserveCols}`,
+          gridRow: `${rows - reserveRows + 1} / span ${reserveRows}`,
+        }
+      : undefined;
+
+    const promptInner = (
+      <>
+        <div className={styles.promptModalCopy}>
+          <p className={styles.promptModalEyebrow}>{t('screen.prompt.eyebrow')}</p>
+          <p className={styles.promptModalText}>{state.activePrompt}</p>
         </div>
-        {state.activePrompt && (
-          <p className={styles.subcopy} style={{marginTop: '4vh'}}>
-            {state.activePrompt}
-          </p>
-        )}
+        <img
+          src={asset('/assets/kindsight/mascot-talk.png')}
+          alt=''
+          aria-hidden='true'
+          className={styles.promptModalMascot}
+        />
+      </>
+    );
+
+    return (
+      <div className={`${shellClass} ${styles.wallShell}`}>
+        <div className={styles.wallHeader}>
+          <img
+            src={asset('/assets/kindsight/kindsight-logo-transparent.png')}
+            alt='Kindsight'
+            className={styles.wallLogo}
+          />
+          <p className={styles.wallTitle}>{t('screen.highlight.title')}</p>
+          {isPerson && (
+            <span className={styles.wallLegend}>
+              <span className={styles.wallLegendDot} aria-hidden='true' />
+              {t('screen.highlight.focusLegend', {name: focusNames.join(', ')})}
+            </span>
+          )}
+        </div>
+        <div
+          className={styles.highlightWall}
+          style={
+            {
+              '--wall-cols': columns,
+              '--wall-rows': rows,
+              '--wall-scale': wallScale,
+            } as React.CSSProperties
+          }
+        >
+          {highlightNotes.map((n, i) => (
+            <div
+              key={`${n.recipient}-${i}`}
+              className={`${styles.highlightCard} ${frameClass[n.frame] ?? ''} ${
+                isPerson
+                  ? focusSet.has(n.recipient)
+                    ? styles.highlightCardFocus
+                    : styles.highlightCardDim
+                  : ''
+              }`}
+            >
+              <div className={styles.highlightHead}>
+                <span className={styles.highlightFrame}>{t(frameKeyOf(n.frame))}</span>
+                <span className={styles.highlightRecipient}>{n.recipient}</span>
+              </div>
+              <p className={styles.highlightText}>{n.content}</p>
+            </div>
+          ))}
+          {reserve && (
+            <div
+              className={`${styles.promptModal} ${styles.promptModalTile}`}
+              style={tileStyle}
+            >
+              {promptInner}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // A pushed prompt with the highlight wall off gets its own beat so the room
+  // sees the discussion question instead of the "look at your phone" holding
+  // screen. Only during/after reveal so a lingering prompt never hijacks writing.
+  if (state.activePrompt && state.revealTriggered) {
+    return (
+      <div className={`${shellClass} ${styles.promptShell}`}>
+        <div className={styles.promptCopy}>
+          <p className={styles.eyebrow}>{t('screen.prompt.eyebrow')}</p>
+          <p className={styles.headline}>{state.activePrompt}</p>
+        </div>
+        <div className={styles.promptVisual}>
+          <img
+            src={asset('/assets/kindsight/mascot-talk.png')}
+            alt=''
+            aria-hidden='true'
+          />
+        </div>
       </div>
     );
   }
 
   if (state.revealTriggered || state.phase === 'reveal') {
     return (
-      <div className={`${shellClass} ${styles.revealShell}`}>
-        <img
-          src={asset('/assets/kindsight/kindsight-mascot-only.png')}
-          alt=''
-          className={styles.mascot}
-        />
-        <p className={styles.headline}>{t('screen.reveal.interstitial')}</p>
+      <div className={`${shellClass} ${styles.revealMoment}`}>
+        <div className={styles.breathHalo}>
+          <img
+            src={asset('/assets/kindsight/onboarding-reveal-transparent.png')}
+            alt=''
+            className={styles.mascot}
+          />
+        </div>
+        <p className={styles.revealEyebrow}>{t('screen.reveal.eyebrow')}</p>
+        <p className={styles.headline}>{t('screen.reveal.title')}</p>
+        <p className={styles.revealBreathe}>{t('screen.reveal.breathe')}</p>
       </div>
     );
   }

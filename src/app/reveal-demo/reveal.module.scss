@@ -475,20 +475,35 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  overflow-y: auto;
   padding: 24px 16px calc(24px + env(safe-area-inset-bottom));
   background-color: rgba(30, 37, 56, 0.97);
 
   p {
+    flex: 0 0 auto;
     color: var(--neon-white);
     font-size: 18px;
     font-weight: var(--fw-semibold);
     text-align: center;
     margin: 8px 0 16px;
   }
+}
+
+/* The generated wall image is tall/portrait. Give it a flexible, scrollable area
+   between the title and the pinned Close button so it scales to fit the screen
+   (or scrolls if still taller) while Close stays reachable at the bottom. */
+.exportOverlayImageWrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
 
   img {
     max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
     border-radius: var(--radius-card);
     box-shadow: 0 0 32px rgba(255, 243, 214, 0.45);
     -webkit-touch-callout: default;
@@ -496,9 +511,13 @@
 }
 
 .exportOverlayClose {
+  flex: 0 0 auto;
   margin-top: 20px;
   min-height: 44px;
   padding: 0 20px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
   border-radius: var(--radius-control);
   color: var(--aurora-cream);
   background-color: transparent;
@@ -520,6 +539,215 @@
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* ---- Share composer ---- */
+
+.composer {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  background-color: rgba(30, 37, 56, 0.98);
+  color: var(--neon-white);
+}
+
+.composerScroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 16px 8px;
+}
+
+.composerHead {
+  text-align: center;
+
+  h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: var(--fw-bold);
+    color: var(--neon-white);
+  }
+
+  p {
+    margin: 6px 0 0;
+    font-size: 13px;
+    line-height: 1.4;
+    color: rgba(255, 255, 255, 0.72);
+  }
+}
+
+.previewWrap {
+  align-self: center;
+  height: min(42vh, 360px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    height: 100%;
+    width: auto;
+    max-width: 88vw;
+    object-fit: contain;
+    border-radius: var(--radius-card);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  }
+}
+
+.previewSkeleton {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  border-radius: var(--radius-card);
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 13px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.previewWrap[data-format='wallpaper'] .previewSkeleton {
+  aspect-ratio: 1290 / 2796;
+}
+
+.previewWrap[data-format='square'] .previewSkeleton {
+  aspect-ratio: 1 / 1;
+}
+
+.segmented {
+  display: flex;
+  gap: 8px;
+
+  button {
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    border-radius: var(--radius-control);
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--neon-white);
+    font-size: 14px;
+    font-weight: var(--fw-semibold);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  }
+}
+
+.segActive {
+  background: #00c79f !important;
+  color: var(--main-color) !important;
+  box-shadow: none !important;
+}
+
+.bgRow {
+  display: flex;
+  gap: 8px;
+}
+
+.bgThumb {
+  flex: 1;
+  height: 66px;
+  align-items: flex-end;
+  border-radius: var(--radius-control);
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+
+  span {
+    width: 100%;
+    padding: 4px 6px;
+    font-size: 11px;
+    font-weight: var(--fw-semibold);
+    text-align: center;
+    color: #fff;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.65), transparent);
+  }
+}
+
+.bgThumbActive {
+  box-shadow:
+    0 0 0 2px #00c79f,
+    0 0 14px rgba(0, 199, 159, 0.55);
+}
+
+.noteRow {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.noteChip {
+  flex: 0 0 auto;
+  width: 178px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: var(--radius-control);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  color: var(--neon-white);
+  text-align: left;
+}
+
+.noteChipActive {
+  background: rgba(0, 199, 159, 0.14);
+  box-shadow: 0 0 0 2px #00c79f;
+}
+
+.noteChipPill {
+  font-size: 11px;
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #00c79f;
+}
+
+.noteChipText {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.composerActions {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 16px calc(14px + env(safe-area-inset-bottom));
+  background: rgba(30, 37, 56, 0.99);
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.composerActionsRow {
+  display: flex;
+  gap: 10px;
+}
+
+.composerGhost {
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--aurora-cream);
+  font-weight: var(--fw-semibold);
+  box-shadow: inset 0 0 0 1px rgba(255, 243, 214, 0.4);
+
+  &:disabled {
+    opacity: 0.5;
+  }
 }
 
 /* ---- Reduced motion (DRD 3.3) ---- */

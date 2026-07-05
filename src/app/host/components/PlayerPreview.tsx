@@ -131,6 +131,8 @@ export const PlayerPreview: React.FC<Props> = ({initialStep = 'lobby', initialMo
       disabled={disabled}
       style={{
         flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
         padding: '12px 20px',
         borderRadius: 'var(--radius-control)',
         border: '2px solid var(--main-color)',
@@ -139,6 +141,7 @@ export const PlayerPreview: React.FC<Props> = ({initialStep = 'lobby', initialMo
         fontFamily: dosisFont,
         fontSize: 15,
         fontWeight: 700,
+        textAlign: 'center',
         opacity: disabled ? 0.35 : 1,
       }}
     >
@@ -151,7 +154,7 @@ export const PlayerPreview: React.FC<Props> = ({initialStep = 'lobby', initialMo
       {/* Left: the phone device */}
       <div className={styles.device}>
         <div className={styles.frame} data-surface='player'>
-          {renderScreen()}
+          <div className={styles.screenScroll}>{renderScreen()}</div>
         </div>
       </div>
 

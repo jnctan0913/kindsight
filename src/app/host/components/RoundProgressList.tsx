@@ -9,6 +9,8 @@ import {consoleCard, cardHeading, dosisFont} from './hostStyles';
 
 type Props = {
   entries: RoundProgressEntry[];
+  // Fill the parent's height and scroll the list internally (writing dashboard).
+  fill?: boolean;
 };
 
 const stateKey: Record<RoundProgressState, StringKey> = {
@@ -23,13 +25,27 @@ const stateColor: Record<RoundProgressState, string> = {
   idle: 'var(--text-color)',
 };
 
-export const RoundProgressList: React.FC<Props> = ({entries}) => {
+export const RoundProgressList: React.FC<Props> = ({entries, fill = false}) => {
   const t = useT();
 
   return (
-    <div style={consoleCard}>
+    <div
+      style={
+        fill
+          ? {...consoleCard, height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0}
+          : consoleCard
+      }
+    >
       <span style={cardHeading}>{t('host.game.progress.title')}</span>
-      <ul style={{marginTop: 14, display: 'flex', flexDirection: 'column', gap: 10}}>
+      <ul
+        style={{
+          marginTop: 14,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 10,
+          ...(fill ? {flex: '1 1 auto', minHeight: 0, overflowY: 'auto'} : null),
+        }}
+      >
         {entries.map((entry) => (
           <li
             key={entry.name}
