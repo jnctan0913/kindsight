@@ -20,3 +20,5 @@ tsconfig.tsbuildinfo
 .claude/
 .cursor/
 scripts/
+CLAUDE.md
+AGENTS.md
